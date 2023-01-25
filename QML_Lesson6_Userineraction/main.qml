@@ -10,14 +10,15 @@ Window {
 
 
     Rectangle {
+        TapHandler{
+            id:inputHandler
+        }
         anchors.centerIn: parent
         width: 100
         height: 100
         color: inputHandler.pressed ? "red": "blue"
-
+        visible: inputHandler.pressed ? false: true
         // Handler'ı kurduk sonrasında yukardaki şekilde bir koşul oluşturduk.
-        TapHandler{
-            id:inputHandler
-        }
+
     }
 }
