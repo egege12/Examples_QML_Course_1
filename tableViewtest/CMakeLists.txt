@@ -20,8 +20,8 @@ set(PROJECT_SOURCES
         tablemodel.h
         datacontainer.cpp
         datacontainer.h
-        aschandler.cpp
-        aschandler.h
+        DBChandler.cpp
+        DBChandler.h
         qml.qrc
 )
 

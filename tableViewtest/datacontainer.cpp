@@ -6,6 +6,7 @@ unsigned int dataContainer::signalCounter = 0;
 dataContainer::dataContainer(QObject *parent)
 {
     ++dataContainer::messageCounter;
+    this->isInserted=false;
     this->isSelected = false;
 }
 
@@ -15,27 +16,35 @@ bool dataContainer::addSignal(signal newSignal)
     signal *Ptr = new signal;
     *Ptr = newSignal;
     dataTypeAss(Ptr);
-    this->message.append(Ptr);
+    this->signalList.append(Ptr);
     return true;
 }
 
-void dataContainer::printAll()
+const QList<dataContainer::signal *> *dataContainer::getSignalList()
 {
-    qInfo()<<"_Message Name:"<<this->Name<<"ID"<<this->messageID<<" DLC:"<<this->dlc<< (isExtended ? "extended":"standard");
-    qInfo()<<"Signal Name:\t"<< "Length:\t"<< "Start Bit\t"<<"Resolution:\t"<<"Offset:\t"<<"Max Value\t"<<"Min Value\t"<<"Com Type\t"<<"App Type\t"<<"Comment\t";
-    for(signal * curSignal : message){
-         qInfo()<< curSignal->name <<"\t"<< curSignal->length <<"\t"<< curSignal->startBit<<"\t"<<curSignal->resolution<<"\t"<<curSignal->offset<<"\t"<<curSignal->maxValue<<"\t"<<curSignal->minValue<<"\t"<<curSignal->comDataType<<"\t"<<curSignal->appDataType<<"\t"<<curSignal->comment;
-    }
+    return &signalList;
 }
 
-QString dataContainer::getMessageInfo()
+QString dataContainer::getName()
 {
-    return QString("NAME:"+this->Name+"ID:"+this->messageID);
+    return this->Name;
 }
+
+QString dataContainer::getID()
+{
+    return this->messageID;
+}
+
+
 
 bool dataContainer::getIfSelected()
 {
     return this->isSelected;
+}
+
+unsigned short dataContainer::getDLC()
+{
+    return this->dlc;
 }
 
 void dataContainer::setName(QString Name)
@@ -58,15 +67,14 @@ void dataContainer::setDLC(unsigned short DLC)
     this->dlc= DLC;
 }
 
-bool dataContainer::setSelected()
+void dataContainer::setSelected()
 {
-    if (isSelected)
-        return false;
-    else{
-        this->isSelected = true;
-        return true;
-    }
+    this->isSelected = true;
+}
 
+void dataContainer::setInserted()
+{
+    this->isInserted = true;
 }
 
 void dataContainer::dataTypeAss(signal *signalPtr)
@@ -153,11 +161,11 @@ void dataContainer::dataTypeAss(signal *signalPtr)
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "LWORD";
         }
-     else{
+        else{
             signalPtr->appDataType = "****(*CHECK IDENTIFIER OR DATA LENGTH*)";
             signalPtr->comDataType = " ";
         }
-}
+    }
 }
 
 
@@ -165,8 +173,8 @@ dataContainer::~dataContainer()
 {
     --dataContainer::messageCounter;
     signalCounter = 0;
-    for(signal * curSignal : message){
+    for(signal * curSignal : signalList){
         delete curSignal;
     }
-    message.clear();
+    signalList.clear();
 }

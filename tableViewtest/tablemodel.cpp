@@ -1,28 +1,41 @@
 #include "tablemodel.h"
-#include "aschandler.h"
+#include "DBChandler.h"
 tablemodel::tablemodel(QAbstractTableModel *parent)
     : QAbstractTableModel{parent}
 {
-    ASCHandler messageTable(nullptr,"C:/Users/egementurker/Desktop/PR1003_DBC_ECU_Interface_v33.dbc");
+    interface.readFile("C:/Users/ege-t/Desktop/diagnose_dbc_v.1.9.dbc");
+
+    connect(&timer, SIGNAL(timeout()), this, SLOT(updateTable()),Qt::QueuedConnection);
+    timer.setInterval(1000);
+    timer.start(1000);
+    table = interface.messagesVector();
 
 }
 
 int tablemodel::rowCount(const QModelIndex &) const
 {
-    return 200;
+    return table.size();
 }
 
 int tablemodel::columnCount(const QModelIndex &) const
 {
-    return 200;
+    return table.at(0).size();
 }
 
 QVariant tablemodel::data(const QModelIndex &index, int role) const
 {
     switch (role) {
-    case Qt::DisplayRole:
-        return QString("%1, %2").arg(index.column()).arg(index.row());
-    default:
+    case TableDataRole:
+        return table.at(index.row()).at(index.column());
+    case HeadingRole:
+        if (index.row() ==0 ){
+                return true;
+        }else{
+                return false;
+        }
+        break;
+
+     default:
         break;
     }
 
@@ -31,5 +44,13 @@ QVariant tablemodel::data(const QModelIndex &index, int role) const
 
 QHash<int, QByteArray> tablemodel::roleNames() const
 {
-    return { {Qt::DisplayRole, "display"} };
+    QHash<int,QByteArray> roles;
+    roles[TableDataRole] = "tabledata";
+    roles[HeadingRole] = "heading";
+    return roles;
+}
+
+void tablemodel::updateTable()
+{
+    table = interface.messagesVector();
 }
