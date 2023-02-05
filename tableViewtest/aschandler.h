@@ -8,12 +8,12 @@
 #include <QFile>
 #include <QTextStream>
 #include <QStringList>
+
 typedef QMap<QString,dataContainer*>  interface;
 
 class ASCHandler : public QObject
 {
     Q_OBJECT
-
     interface comInterface;
     bool parseMessages(QFile *ascFile);
     bool generateNewMessage(QString messageID, QString messageName , unsigned short messageDLC);
@@ -25,6 +25,7 @@ class ASCHandler : public QObject
     double parseMaxValue(QString  splitedPart);
     double parseMinValue(QString  splitedPart);
     QString parseComment(QString splitedPart);
+    QVector<QVector<QString>> getMessagesVector();
 
 public:
     explicit ASCHandler(QObject *parent = nullptr, QString fileLocation = " ");

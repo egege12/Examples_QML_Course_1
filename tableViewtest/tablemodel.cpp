@@ -3,7 +3,8 @@
 tablemodel::tablemodel(QAbstractTableModel *parent)
     : QAbstractTableModel{parent}
 {
-    ASCHandler messageTable("C:/Users/egementurker/Desktop/PR1003_DBC_ECU_Interface_v33.dbc");
+    ASCHandler messageTable(nullptr,"C:/Users/egementurker/Desktop/PR1003_DBC_ECU_Interface_v33.dbc");
+
 }
 
 int tablemodel::rowCount(const QModelIndex &) const
