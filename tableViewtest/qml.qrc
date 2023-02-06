@@ -1,9 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>tableMessages.qml</file>
         <file>fileDialogPage.qml</file>
         <file>MenuButton.qml</file>
+        <file>MessageSelectPage.qml</file>
+        <file>WarningPopup.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>img/iconSearchFile.png</file>

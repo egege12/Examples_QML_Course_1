@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     //class definitions
 
-    DBCHandler interface;
+    DBCHandler interface(&app) ;
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
@@ -28,9 +28,9 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
-    QQmlContext * Context1 = new QQmlContext (engine.rootContext());
+    QQmlContext * Context1 = engine.rootContext();
 
-    Context1->setContextProperty("interfaceObj", &interface);
+    Context1->setContextProperty("comObj", &interface);
 
 
     return app.exec();

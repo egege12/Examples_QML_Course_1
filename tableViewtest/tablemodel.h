@@ -6,17 +6,17 @@
 
 class tablemodel : public QAbstractTableModel
 {
-    Q_OBJECT
 
     enum TableRoles{
         TableDataRole = Qt::UserRole+1,
         HeadingRole
     };
 
-    QList<QList<QString>> table;
+
 
 
 public:
+     QList<QList<QString>> table;
     explicit tablemodel(QAbstractTableModel *parent = nullptr);
 
     int rowCount(const QModelIndex & = QModelIndex()) const override;
@@ -26,7 +26,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
 
     QHash<int, QByteArray> roleNames() const override;
-
+public slots:
     void generateTable(QList<QList<QString>> messages);
     void updateTable();
 };

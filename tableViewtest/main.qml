@@ -16,6 +16,9 @@ Window {
         initialItem: "fileDialogPage.qml"
 
     }
-
+    Connections {
+        target : comObj
+        onErrCode: {popup.open()}
+    }
 
 }

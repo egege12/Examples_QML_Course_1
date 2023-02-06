@@ -5,11 +5,11 @@
 DBCHandler::DBCHandler(QObject *parent)
     : QObject{parent}
 {
-
+    this->isAllInserted = false;
 }
 
 
-QList<QList<QString>> DBCHandler::messagesVector()
+QList<QList<QString>> DBCHandler::messagesList()
 {
     if (isAllInserted){
         QList<QList<QString>> data;
@@ -55,7 +55,12 @@ void DBCHandler::update()
 void DBCHandler::readFile(QString fileLocation)
 {
     dbcPath = fileLocation;
-    openFile();
+    if(this->isAllInserted){
+        emit errCode("DBC is already inserted");
+        qInfo()<<"alreadyinserted";
+    }else{
+        openFile();
+    }
 }
 
 void DBCHandler::openFile()
@@ -64,7 +69,7 @@ void DBCHandler::openFile()
         if (dbcPath.isEmpty()){
             throw QString("File location cant be empty");
         }else if(!dbcPath.contains(".dbc")){
-            throw QString("Please select \".dbc\" file to parse messages and signals");
+            throw QString("Please select \".dbc\" ");
         }
         else{
             QFile *ascFile = new QFile(dbcPath);
@@ -73,16 +78,12 @@ void DBCHandler::openFile()
             }
             else{
                 if (!parseMessages(ascFile)){
-                    throw QString("something goes wrong about asc file");
-                }else{
-                    QObject::connect(&watcher, SIGNAL(fileChanged(dbcPath)), this, SLOT(DBCHandler::update()));
-                    qInfo()<< "watcher:" << watcher.addPath(dbcPath);
-
-
+                    throw QString("something goes wrong about dbc file");
                 }
             }
         }
     } catch (QString text) {
+        emit errCode(text);
         qInfo()<<text;
     }
 }
@@ -145,7 +146,7 @@ bool DBCHandler::parseMessages(QFile *ascFile)
         inlineOfMessageOld = inlineOfMessage;
     }
     this->isAllInserted = true;
-    emit interfaceReady(this->messagesVector());
+    emit interfaceReady();
 
     return true;
 }

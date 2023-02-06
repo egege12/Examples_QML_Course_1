@@ -27,14 +27,15 @@ public slots:
     const dataContainer *getMessage(QString messageID);
 
     //Tableview format nested vectors
-    QList<QList<QString>> messagesVector();
+    QList<QList<QString>> messagesList();
     QList<QList<QString>> signalsVector(QString messageID);
 signals:
-    void interfaceReady(QList<QList<QString>> messages);
+    void interfaceReady();
+    void errCode(QString textErr);
 private:
     interface comInterface;
     QFileSystemWatcher watcher;
-    QTimer timer1,timer2;
+
 
     // Reading Process from asc file
 

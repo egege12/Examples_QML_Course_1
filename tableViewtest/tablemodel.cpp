@@ -3,7 +3,7 @@
 tablemodel::tablemodel(QAbstractTableModel *parent)
     : QAbstractTableModel{parent}
 {
-
+    table.append({"Name","ID","DLC","Status"});
 }
 
 int tablemodel::rowCount(const QModelIndex &) const
