@@ -10,7 +10,8 @@ DBCHandler::DBCHandler(QObject *parent)
 
 
 QList<QList<QString>> DBCHandler::messagesVector()
-{   if (isAllInserted){
+{
+    if (isAllInserted){
         QList<QList<QString>> data;
         data.append({"Name","ID","DLC","Status"});
         foreach(dataContainer *const curValue , comInterface){
@@ -144,6 +145,7 @@ bool DBCHandler::parseMessages(QFile *ascFile)
         inlineOfMessageOld = inlineOfMessage;
     }
     this->isAllInserted = true;
+    emit interfaceReady(this->messagesVector());
 
     return true;
 }

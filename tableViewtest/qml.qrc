@@ -1,5 +1,14 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>tableMessages.qml</file>
+        <file>fileDialogPage.qml</file>
+        <file>MenuButton.qml</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>img/iconSearchFile.png</file>
+        <file>img/arrowLeft.png</file>
+        <file>img/arrowRight.png</file>
+        <file>img/dbcGeneratorLogo.png</file>
     </qresource>
 </RCC>

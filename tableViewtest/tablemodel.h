@@ -3,8 +3,7 @@
 
 #include <QObject>
 #include <QAbstractTableModel>
-#include <QTimer>
-#include "DBChandler.h"
+
 class tablemodel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -15,7 +14,7 @@ class tablemodel : public QAbstractTableModel
     };
 
     QList<QList<QString>> table;
-    QTimer timer;
+
 
 public:
     explicit tablemodel(QAbstractTableModel *parent = nullptr);
@@ -28,10 +27,7 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 
-    DBCHandler interface;
-
-signals:
-public slots:
+    void generateTable(QList<QList<QString>> messages);
     void updateTable();
 };
 

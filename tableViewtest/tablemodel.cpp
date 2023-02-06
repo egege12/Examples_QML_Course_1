@@ -1,14 +1,8 @@
 #include "tablemodel.h"
-#include "DBChandler.h"
+
 tablemodel::tablemodel(QAbstractTableModel *parent)
     : QAbstractTableModel{parent}
 {
-    interface.readFile("C:/Users/ege-t/Desktop/diagnose_dbc_v.1.9.dbc");
-
-    connect(&timer, SIGNAL(timeout()), this, SLOT(updateTable()),Qt::QueuedConnection);
-    timer.setInterval(1000);
-    timer.start(1000);
-    table = interface.messagesVector();
 
 }
 
@@ -50,7 +44,7 @@ QHash<int, QByteArray> tablemodel::roleNames() const
     return roles;
 }
 
-void tablemodel::updateTable()
+void tablemodel::generateTable(QList<QList<QString> > messages)
 {
-    table = interface.messagesVector();
+    table = messages;
 }

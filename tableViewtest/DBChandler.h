@@ -18,23 +18,24 @@ class DBCHandler : public QObject
 
 public:
     explicit DBCHandler(QObject *parent = nullptr);
-    void readFile(QString fileLocation);
-//Tableview format nested vectors
-    QList<QList<QString>> messagesVector();
-    QList<QList<QString>> signalsVector(QString messageID);
-
-    const dataContainer *getMessage(QString messageID);
-
+    QString dbcPath;
 
 public slots:
     bool selectMessage(QString messageID);
     void update();
-signals:
+    void readFile(QString fileLocation);
+    const dataContainer *getMessage(QString messageID);
 
+    //Tableview format nested vectors
+    QList<QList<QString>> messagesVector();
+    QList<QList<QString>> signalsVector(QString messageID);
+signals:
+    void interfaceReady(QList<QList<QString>> messages);
 private:
     interface comInterface;
     QFileSystemWatcher watcher;
-    QTimer timer;
+    QTimer timer1,timer2;
+
     // Reading Process from asc file
 
     void openFile();
@@ -51,7 +52,7 @@ private:
     // Reading Process from asc file
 
     bool isAllInserted;
-    QString dbcPath;
+
 };
 
 #endif // ASCHANDLER_H

@@ -1,9 +1,18 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include "tablemodel.h"
 #include <QQmlContext>
-#include "DBChandler.h"
 
+
+#include "someclass.h"
+
+/* İki yöntem var
+    -   QmlRegisterType  -> burası sadece obje kullanılırken QML tarafından çağırılır.
+    -   QmlContext  -> bu cpp ile başlar ve burda kullanılabilir.
+
+ Temel fark nedir ?
+
+    - register ile olursa qmlde tanımlar kullanırsın. Obje çağırılana kadar başlatmaz. context ile cppde çağrıldığı an başlatılır.
+*/
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -11,13 +20,13 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
 
-    //qmlregistertypes
+//QQmlContext ile  olursa
+//SomeClass testClass;
 
-    qmlRegisterType<tablemodel>("TableModel",0, 1, "TableModel");
+//qml register ile
 
-    //class definitions
+    qmlRegisterType<SomeClass> ("Monty", 1, 0 , "SomeClass");
 
-    DBCHandler interface;
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
@@ -28,10 +37,9 @@ int main(int argc, char *argv[])
     }, Qt::QueuedConnection);
     engine.load(url);
 
-    QQmlContext * Context1 = new QQmlContext (engine.rootContext());
-
-    Context1->setContextProperty("interfaceObj", &interface);
-
+//QQmlContext ile
+//QQmlContext * rootContext = engine.rootContext();
+//rootContext->setContextProperty( "classA",&testClass);
 
     return app.exec();
 }
