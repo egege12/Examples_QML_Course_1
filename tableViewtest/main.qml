@@ -4,8 +4,8 @@ import QtQuick.Controls 2.0
 
 Window {
     id: root
-    width: 640
-    height: 480
+    width: 1080
+    height: 580
     visible: true
     title: qsTr("Interface Creator")
 

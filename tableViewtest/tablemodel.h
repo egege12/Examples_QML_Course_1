@@ -3,25 +3,22 @@
 
 #include <QObject>
 #include <QAbstractTableModel>
-
+#include <QDebug>
 class tablemodel : public QAbstractTableModel
 {
-
+    Q_OBJECT
     enum TableRoles{
         TableDataRole = Qt::UserRole+1,
         HeadingRole
     };
+
 public:
 
-Q_INVOKABLE void setTable(const QVariant& value)
-        { //inline for briefity
-            beginResetModel();
-            table = value.value<QVector<QVector<QString>>>();
-            endResetModel();
-        }
+Q_PROPERTY(QList<QList<QString>> table READ getTable WRITE setTable NOTIFY tableChanged)
 
 
-     QList<QList<QString>> table;
+    QList<QList<QString>> table;
+
     explicit tablemodel(QAbstractTableModel *parent = nullptr);
 
     int rowCount(const QModelIndex & = QModelIndex()) const override;
@@ -31,8 +28,13 @@ Q_INVOKABLE void setTable(const QVariant& value)
     QVariant data(const QModelIndex &index, int role) const override;
 
     QHash<int, QByteArray> roleNames() const override;
-public slots:
 
+    QList<QList<QString>> getTable();
+
+signals:
+    void tableChanged();
+public slots:
+    void setTable(QList<QList<QString>> table);
 };
 
 #endif // TABLEMODEL_H

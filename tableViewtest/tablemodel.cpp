@@ -44,4 +44,18 @@ QHash<int, QByteArray> tablemodel::roleNames() const
     return roles;
 }
 
+QList<QList<QString> > tablemodel::getTable()
+{
+    return table;
+}
+
+void tablemodel::setTable(QList<QList<QString> > table)
+{
+    beginResetModel();
+    qInfo()<<"table appended";
+    this->table.append(table);
+    emit this->tableChanged();
+    endResetModel();
+}
+
 

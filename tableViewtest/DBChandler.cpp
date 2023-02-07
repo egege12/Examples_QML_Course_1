@@ -13,10 +13,11 @@ QList<QList<QString>> DBCHandler::messagesList()
 {
     if (isAllInserted){
         QList<QList<QString>> data;
-        data.append({"Name","ID","DLC","Status"});
+
         foreach(dataContainer *const curValue , comInterface){
             data.append({curValue->getName(),curValue->getID(),QString::number(curValue->getDLC()),curValue->getIfSelected() ? "X" : "O" });
         }
+        qInfo()<<"called";
         return data;
     }
 }
