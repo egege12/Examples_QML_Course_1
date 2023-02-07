@@ -11,11 +11,16 @@ class tablemodel : public QAbstractTableModel
         TableDataRole = Qt::UserRole+1,
         HeadingRole
     };
-
-
-
-
 public:
+
+Q_INVOKABLE void setTable(const QVariant& value)
+        { //inline for briefity
+            beginResetModel();
+            table = value.value<QVector<QVector<QString>>>();
+            endResetModel();
+        }
+
+
      QList<QList<QString>> table;
     explicit tablemodel(QAbstractTableModel *parent = nullptr);
 
@@ -27,8 +32,7 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 public slots:
-    void generateTable(QList<QList<QString>> messages);
-    void updateTable();
+
 };
 
 #endif // TABLEMODEL_H

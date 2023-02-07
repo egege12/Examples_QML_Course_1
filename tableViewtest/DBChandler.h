@@ -34,10 +34,9 @@ signals:
     void errCode(QString textErr);
 private:
     interface comInterface;
-    QFileSystemWatcher watcher;
 
 
-    // Reading Process from asc file
+    // Reading Process from dbc file
 
     void openFile();
     bool parseMessages(QFile *ascFile);

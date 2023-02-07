@@ -44,7 +44,4 @@ QHash<int, QByteArray> tablemodel::roleNames() const
     return roles;
 }
 
-void tablemodel::generateTable(QList<QList<QString> > messages)
-{
-    table = messages;
-}
+
