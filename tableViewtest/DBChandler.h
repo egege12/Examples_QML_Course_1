@@ -32,6 +32,7 @@ public slots:
     const dataContainer *getMessage(QString messageID);
     void setSelected(QString messageID);
     void setDisplayReqSignal(QString signalID);
+    void setFolderLoc(QString folderLoc);
     //Tableview format nested vectors
     QList<QList<QString>> messagesList();
     QList<QList<QString>> signalsList();
@@ -42,7 +43,7 @@ signals:
     void selectedStatChanged();
 private:
     interface comInterface;
-
+    QString folderLoc;
 
     // Reading Process from dbc file
 

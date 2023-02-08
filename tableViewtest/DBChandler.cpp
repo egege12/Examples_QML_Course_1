@@ -107,6 +107,11 @@ void DBCHandler::setDisplayReqSignal(QString signalID)
     emit selectedViewChanged();
 }
 
+void DBCHandler::setFolderLoc(QString folderLoc)
+{
+    this->folderLoc = folderLoc;
+}
+
 bool DBCHandler::parseMessages(QFile *ascFile)
 {
     QTextStream lines(ascFile);
