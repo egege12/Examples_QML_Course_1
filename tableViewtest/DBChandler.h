@@ -17,21 +17,29 @@ class DBCHandler : public QObject
     Q_OBJECT
 
 public:
+
+
+
     explicit DBCHandler(QObject *parent = nullptr);
     QString dbcPath;
+    QString displayReqSignalID;
+
+
 
 public slots:
-    bool selectMessage(QString messageID);
     void update();
     void readFile(QString fileLocation);
     const dataContainer *getMessage(QString messageID);
-
+    void setSelected(QString messageID);
+    void setDisplayReqSignal(QString signalID);
     //Tableview format nested vectors
     QList<QList<QString>> messagesList();
-    QList<QList<QString>> signalsVector(QString messageID);
+    QList<QList<QString>> signalsList();
 signals:
     void interfaceReady();
     void errCode(QString textErr);
+    void selectedViewChanged();
+    void selectedStatChanged();
 private:
     interface comInterface;
 

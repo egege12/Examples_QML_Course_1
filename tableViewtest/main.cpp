@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     //qmlregistertypes
 
     qmlRegisterType<tablemodel>("TableModel",0, 1, "TableModel");
-
+    qmlRegisterType<tablemodel>("TableModel2",0, 1, "TableModelSignal");
     //class definitions
 
     DBCHandler interface(&app) ;

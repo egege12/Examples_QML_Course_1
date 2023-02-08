@@ -69,7 +69,7 @@ void dataContainer::setDLC(unsigned short DLC)
 
 void dataContainer::setSelected()
 {
-    this->isSelected = true;
+    this->isSelected = !this->isSelected;
 }
 
 void dataContainer::setInserted()

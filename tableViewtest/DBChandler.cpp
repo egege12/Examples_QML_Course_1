@@ -13,34 +13,29 @@ QList<QList<QString>> DBCHandler::messagesList()
 {
     if (isAllInserted){
         QList<QList<QString>> data;
-
+        data.append({"Name","ID","DLC","Status"});
         foreach(dataContainer *const curValue , comInterface){
             data.append({curValue->getName(),curValue->getID(),QString::number(curValue->getDLC()),curValue->getIfSelected() ? "X" : "O" });
         }
-        qInfo()<<"called";
+
         return data;
     }
 }
 
-QList<QList<QString> > DBCHandler::signalsVector(QString messageID)
+QList<QList<QString> > DBCHandler::signalsList()
 {
     if (isAllInserted){
 
         QList<QList<QString>> dataSignal;
-
-        for ( const dataContainer::signal *data : *comInterface.value(messageID)->getSignalList()){
+        dataSignal.append({"Name","StartBit","Length","Resolution","Offset","MinValue","MaxValue","DataType"});
+        for ( const dataContainer::signal *data : *comInterface.value(this->displayReqSignalID)->getSignalList()){
             dataSignal.append({data->name,QString::number(data->startBit),QString::number(data->length),QString::number(data->resolution),QString::number(data->offset),QString::number(data->minValue),QString::number(data->maxValue),data->appDataType});
         }
+        qInfo()<<"Signal List turned signal"<<displayReqSignalID;
         return dataSignal;
     }
 }
 
-bool DBCHandler::selectMessage(QString messageID)
-{
-    comInterface.value(messageID)->setSelected();
-
-    return comInterface.value(messageID)->getIfSelected();
-}
 
 void DBCHandler::update()
 {
@@ -93,6 +88,23 @@ const dataContainer *DBCHandler::getMessage(QString messageID)
 {
 
     return comInterface.value(messageID);
+}
+
+void DBCHandler::setSelected(QString messageID)
+{
+    comInterface.value(messageID)->setSelected();
+    qInfo()<<"Selection status changed to "<<QString::number(comInterface.value(messageID)->getIfSelected()) <<"for message ID:"<<displayReqSignalID;
+    emit selectedStatChanged();
+}
+
+
+
+
+void DBCHandler::setDisplayReqSignal(QString signalID)
+{
+    this->displayReqSignalID = signalID;
+    qInfo()<<"Signal set to display"<<displayReqSignalID;
+    emit selectedViewChanged();
 }
 
 bool DBCHandler::parseMessages(QFile *ascFile)

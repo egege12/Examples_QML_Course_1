@@ -3,7 +3,7 @@
 tablemodel::tablemodel(QAbstractTableModel *parent)
     : QAbstractTableModel{parent}
 {
-    table.append({"Name","ID","DLC","Status"});
+    table.append({" "," "," "," "});
 }
 
 int tablemodel::rowCount(const QModelIndex &) const
@@ -21,6 +21,10 @@ QVariant tablemodel::data(const QModelIndex &index, int role) const
     switch (role) {
     case TableDataRole:
         return table.at(index.row()).at(index.column());
+    case MessageID:
+        return table.at(index.row()).at(1);
+    case MessageName:
+        return table.at(index.row()).at(0);
     case HeadingRole:
         if (index.row() ==0 ){
                 return true;
@@ -41,6 +45,8 @@ QHash<int, QByteArray> tablemodel::roleNames() const
     QHash<int,QByteArray> roles;
     roles[TableDataRole] = "tabledata";
     roles[HeadingRole] = "heading";
+    roles[MessageID] = "messageid";
+    roles[MessageName] = "messagename";
     return roles;
 }
 
@@ -51,7 +57,9 @@ QList<QList<QString> > tablemodel::getTable()
 
 void tablemodel::setTable(QList<QList<QString> > table)
 {
+
     beginResetModel();
+    this->table.clear();
     qInfo()<<"table appended";
     this->table.append(table);
     emit this->tableChanged();

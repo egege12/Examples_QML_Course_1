@@ -9,8 +9,8 @@ Item {
 
         Rectangle {
             gradient:Gradient{
-                GradientStop {position: 0.0; color : "#336BD6"}
-                GradientStop {position: 1.0; color : "#194773"}
+                GradientStop {position: 0.0; color : "#020202"}
+                GradientStop {position: 1.0; color : "#010101"}
             }
             width : parent.width
             height: parent.height/2
@@ -27,8 +27,8 @@ Item {
 
         Rectangle {
             gradient:Gradient{
-                GradientStop {position: 0.0; color : "#194773"}
-                GradientStop {position: 1.0; color : "#1947AA"}
+                GradientStop {position: 0.0; color : "#010101"}
+                GradientStop {position: 1.0; color : "#000000"}
             }
             width : parent.width
             height: parent.height/2
@@ -118,8 +118,8 @@ Item {
                     leftMargin: parent.width/2 - width/2
                 }
                 buttonImageSource : "qrc:/img/img/arrowRight.png"
-                radius: width
-                width: parent.width * .1
+                radius: width/2
+                width: parent.width * .05
                 height: width
                 onButtonClicked: comObj.readFile(fileNameTextField.text)
                 onButtonReleased: stack.push("MessageSelectPage.qml")
