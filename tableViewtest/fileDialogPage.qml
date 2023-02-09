@@ -8,9 +8,10 @@ Item {
 
     property bool isFileSelected : false;
     property bool isFolderselected : false;
+
     Rectangle {
         id: background
-        color: "#d3d3d3"
+        color: "#fdfbfb"
         border.width: 0
 
         anchors.fill : parent
@@ -145,10 +146,8 @@ Item {
                 anchors.rightMargin: 79
                 anchors.bottomMargin: 35
                 disableButtonClick: (mainItem.isFileSelected==false) | (mainItem.isFolderselected==false)
-                onButtonClicked: {comObj.readFile(fileNameTextField.text)
-                                  comObj.setFolderLoc(locNameTextField.text)}
-                onButtonReleased: stack.push("MessageSelectPage.qml")
             }//buttonToPage1
+
 
             Text {
                 id: text1
@@ -203,7 +202,7 @@ Item {
                 id: logo
                 x: 16
                 y: 276
-                source: "qrc:/img/img/dbcGeneratorLogo.png"
+                source: "qrc:/img/img/imgLogo.png"
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.topMargin: 6
                 width: parent.width*.95
@@ -212,6 +211,17 @@ Item {
                 fillMode:Image.PreserveAspectFit
             }
         }
+    }
+    Connections{
+        target: buttonToPage1
+        onButtonClicked:  {
+            comObj.readFile(fileNameTextField.text)
+            comObj.setFolderLoc(locNameTextField.text)
+        }
+    }
+    Connections{
+        target: comObj
+        onFileandLockOk:stack.push("MessageSelectPage.qml")
     }
 }
 

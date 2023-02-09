@@ -17,36 +17,56 @@ class DBCHandler : public QObject
     Q_OBJECT
 
 public:
-
-
-
+    static unsigned int selectedMessageCounter;
     explicit DBCHandler(QObject *parent = nullptr);
     QString dbcPath;
     QString displayReqSignalID;
 
 
+    Q_PROPERTY(QString errCode READ errCode WRITE setErrCode NOTIFY errCodeChanged)
+
+    QString errCode() const;
+    void setErrCode(const QString &newErrCode);
+    const dataContainer *getMessage(QString messageID);
 
 public slots:
+
     void update();
+    void clearData();
     void readFile(QString fileLocation);
-    const dataContainer *getMessage(QString messageID);
     void setSelected(QString messageID);
     void setDisplayReqSignal(QString signalID);
     void setFolderLoc(QString folderLoc);
+    void setDutName(QString dutName);
     //Tableview format nested vectors
     QList<QList<QString>> messagesList();
     QList<QList<QString>> signalsList();
+    void startToGenerate();
+
 signals:
+
     void interfaceReady();
-    void errCode(QString textErr);
     void selectedViewChanged();
     void selectedStatChanged();
+    void procesStarted();
+    void errCodeChanged();
+    void fileandLockOk();
+
 private:
+    //Private Variables
+    //***********************************
     interface comInterface;
     QString folderLoc;
+    QString dutName;
+    bool isAllInserted;
+    QString m_errCode;
+
+    //Private methods
+    //***********************************
+
 
     // Reading Process from dbc file
-
+    //***********************************
     void openFile();
     bool parseMessages(QFile *ascFile);
     bool generateNewMessage(QString messageID, QString messageName , unsigned short messageDLC);
@@ -60,7 +80,6 @@ private:
     QString parseComment(QString splitedPart);
     // Reading Process from asc file
 
-    bool isAllInserted;
 
 };
 

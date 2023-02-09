@@ -4,12 +4,12 @@
         <file>fileDialogPage.qml</file>
         <file>MenuButton.qml</file>
         <file>MessageSelectPage.qml</file>
-        <file>WarningPopup.qml</file>
+        <file>DesignTestPAth.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>img/iconSearchFile.png</file>
         <file>img/arrowLeft.png</file>
         <file>img/arrowRight.png</file>
-        <file>img/dbcGeneratorLogo.png</file>
+        <file>img/imgLogo.png</file>
     </qresource>
 </RCC>

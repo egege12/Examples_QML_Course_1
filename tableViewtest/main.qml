@@ -10,6 +10,7 @@ Window {
     title: qsTr("Interface Creator")
 
 
+
     StackView {
         id: stack
         anchors.fill:parent

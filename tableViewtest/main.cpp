@@ -13,12 +13,12 @@ int main(int argc, char *argv[])
 
     //qmlregistertypes
 
-    qmlRegisterType<tablemodel>("TableModel",0, 1, "TableModel");
-    qmlRegisterType<tablemodel>("TableModel2",0, 1, "TableModelSignal");
+   qmlRegisterType<tablemodel>("TableModel",0, 1, "TableModel");
+   qmlRegisterType<tablemodel>("TableModel2",0, 1, "TableModelSignal");
     //class definitions
 
     DBCHandler interface(&app) ;
-
+    tablemodel table1,table2;
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -26,12 +26,13 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
-    engine.load(url);
+
 
     QQmlContext * Context1 = engine.rootContext();
 
     Context1->setContextProperty("comObj", &interface);
 
+    engine.load(url);
 
     return app.exec();
 }

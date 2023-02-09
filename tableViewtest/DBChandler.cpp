@@ -1,11 +1,24 @@
 #include "DBChandler.h"
 #include "datacontainer.h"
 
+unsigned int DBCHandler::selectedMessageCounter = 0;
 
 DBCHandler::DBCHandler(QObject *parent)
     : QObject{parent}
 {
     this->isAllInserted = false;
+}
+
+QString DBCHandler::errCode() const
+{
+    return m_errCode;
+}
+
+void DBCHandler::setErrCode(const QString &newErrCode)
+{
+    this->m_errCode= newErrCode;
+    emit errCodeChanged();
+    qInfo()<<"Error: "<<m_errCode;
 }
 
 
@@ -36,6 +49,17 @@ QList<QList<QString> > DBCHandler::signalsList()
     }
 }
 
+void DBCHandler::startToGenerate()
+{
+    if(!DBCHandler::selectedMessageCounter){
+        this->setErrCode("En az bir mesaj seçmelisin");
+    }else if(!isAllInserted){
+        this->setErrCode("Veri tabanı okunamadı");
+    }else
+        emit this->procesStarted();
+        //do here
+}
+
 
 void DBCHandler::update()
 {
@@ -48,11 +72,21 @@ void DBCHandler::update()
         openFile();
 }
 
+void DBCHandler::clearData()
+{
+    isAllInserted = false;
+    foreach(dataContainer * curValue , comInterface){
+        delete curValue;
+    }
+    comInterface.clear();
+    setErrCode("Table cleaned");
+}
+
 void DBCHandler::readFile(QString fileLocation)
 {
     dbcPath = fileLocation;
     if(this->isAllInserted){
-        emit errCode("DBC is already inserted");
+        this->setErrCode("DBC is already inserted");
         qInfo()<<"alreadyinserted";
     }else{
         openFile();
@@ -63,25 +97,30 @@ void DBCHandler::openFile()
 {
     try {
         if (dbcPath.isEmpty()){
-            throw QString("File location cant be empty");
+            throw QString("Dosya konumu boş olamaz!");
         }else if(!dbcPath.contains(".dbc")){
-            throw QString("Please select \".dbc\" ");
+            throw QString("Lütfen \".dbc\" uzantılı bir dosya seçin!");
         }
         else{
             QFile *ascFile = new QFile(dbcPath);
             if(!ascFile->open(QIODevice::ReadOnly | QIODevice::Text)){
-                throw QString("File can not be opened, please check if the path or name is correct");
+                throw QString("Dosya açılamadı, lütfen konumu kontrol edin!");
             }
             else{
+                    emit fileandLockOk();
                 if (!parseMessages(ascFile)){
-                    throw QString("something goes wrong about dbc file");
-                }
+                    ascFile->close();
+                    throw QString("Arayüzü okurken bir şeyler yanlış gitti!");
+                }else
+                    emit interfaceReady();
+                ascFile->close();
             }
+
         }
     } catch (QString text) {
-        emit errCode(text);
-        qInfo()<<text;
+        this->setErrCode(text);
     }
+
 }
 
 const dataContainer *DBCHandler::getMessage(QString messageID)
@@ -94,6 +133,11 @@ void DBCHandler::setSelected(QString messageID)
 {
     comInterface.value(messageID)->setSelected();
     qInfo()<<"Selection status changed to "<<QString::number(comInterface.value(messageID)->getIfSelected()) <<"for message ID:"<<displayReqSignalID;
+    if(comInterface.value(messageID)->getIfSelected()){
+        DBCHandler::selectedMessageCounter++;
+    }else{
+        DBCHandler::selectedMessageCounter--;
+    }
     emit selectedStatChanged();
 }
 
@@ -110,6 +154,12 @@ void DBCHandler::setDisplayReqSignal(QString signalID)
 void DBCHandler::setFolderLoc(QString folderLoc)
 {
     this->folderLoc = folderLoc;
+}
+
+void DBCHandler::setDutName(QString dutName)
+{
+    this->dutName = dutName;
+    qInfo()<<"Dut name set to :"<<dutName;
 }
 
 bool DBCHandler::parseMessages(QFile *ascFile)
@@ -164,7 +214,6 @@ bool DBCHandler::parseMessages(QFile *ascFile)
         inlineOfMessageOld = inlineOfMessage;
     }
     this->isAllInserted = true;
-    emit interfaceReady();
 
     return true;
 }
