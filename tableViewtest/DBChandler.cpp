@@ -21,7 +21,6 @@ void DBCHandler::setErrCode(const QString &newErrCode)
     qInfo()<<"Error: "<<m_errCode;
 }
 
-
 QList<QList<QString>> DBCHandler::messagesList()
 {
     if (isAllInserted){
@@ -49,18 +48,6 @@ QList<QList<QString> > DBCHandler::signalsList()
     }
 }
 
-void DBCHandler::startToGenerate()
-{
-    if(!DBCHandler::selectedMessageCounter){
-        this->setErrCode("En az bir mesaj seçmelisin");
-    }else if(!isAllInserted){
-        this->setErrCode("Veri tabanı okunamadı");
-    }else
-        emit this->procesStarted();
-        //do here
-}
-
-
 void DBCHandler::update()
 {
     isAllInserted = false;
@@ -68,8 +55,8 @@ void DBCHandler::update()
         delete curValue;
     }
     comInterface.clear();
-        qInfo()<<"Updating";
-        openFile();
+    qInfo()<<"Updating";
+    openFile();
 }
 
 void DBCHandler::clearData()
@@ -107,7 +94,7 @@ void DBCHandler::openFile()
                 throw QString("Dosya açılamadı, lütfen konumu kontrol edin!");
             }
             else{
-                    emit fileandLockOk();
+                emit fileandLockOk();
                 if (!parseMessages(ascFile)){
                     ascFile->close();
                     throw QString("Arayüzü okurken bir şeyler yanlış gitti!");
@@ -141,9 +128,6 @@ void DBCHandler::setSelected(QString messageID)
     emit selectedStatChanged();
 }
 
-
-
-
 void DBCHandler::setDisplayReqSignal(QString signalID)
 {
     this->displayReqSignalID = signalID;
@@ -159,6 +143,8 @@ void DBCHandler::setFolderLoc(QString folderLoc)
 void DBCHandler::setDutName(QString dutName)
 {
     this->dutName = dutName;
+    this->dutHeader = dutName.remove("_T");
+
     qInfo()<<"Dut name set to :"<<dutName;
 }
 
@@ -292,4 +278,141 @@ QString DBCHandler::parseComment(QString splitedPart)
     return comment.trimmed();
 }
 
+//XML Manpulation
+void DBCHandler::startToGenerate()
+{
+    if(!DBCHandler::selectedMessageCounter){
+        this->setErrCode("En az bir mesaj seçmelisin");
+    }else if(!isAllInserted){
+        this->setErrCode("Veri tabanı okunamadı");
+    }else{
+        emit this->procesStarted();
+        try {
+            if (this->folderLoc.isEmpty()){
+                throw QString("Dosya konumu boş olamaz!");
+            }
+            else{
+                QFile *xmlFile = new QFile(QString(this->folderLoc+"/"+(this->dutHeader)+"_Chain.xml"));
+                if(!xmlFile->open(QIODevice::WriteOnly | QIODevice::Truncate)){
+                    throw QString("Dosya açılamadı, lütfen konumu kontrol edin!");
+                }
+                else{
+                    if (!createXml_STG1(xmlFile)){
+                        throw QString("XML oluşturulurken bir şeyler yanlış gitti!");
+                    }else
+                        xmlFile->close();
+                }
 
+            }
+        } catch (QString text) {
+            this->setErrCode(text);
+        }
+    }
+    //do here
+}
+
+bool DBCHandler::createXml_STG1(QFile *xmlFile)
+{
+    QTextStream out(xmlFile);
+    QDomDocument doc;
+    QDomText text;
+    QDomElement element,elemChild_1,elemChild_2,elemChild_3,elemChild_4,elemChild_5,elemChild_6;
+    QDomAttr attr;
+
+    //<?xml version="1.0" encoding="utf-8"?>
+    QDomProcessingInstruction instruction;
+    instruction = doc.createProcessingInstruction( "xml", "version = \'1.0\' encoding=\'utf-8\'" );
+    doc.appendChild( instruction );
+    //****************************************************
+
+    //<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+    QDomElement elemProject = doc.createElement( "project" );
+    attr = doc.createAttribute( "xmlns" );//Add the text NAME in the USERINFO element
+    attr.setValue("http://www.plcopen.org/xml/tc6_0200");//Add value for text NAME
+    elemProject.setAttributeNode(attr);
+    //Append child to document
+    doc.appendChild(elemProject);
+    //****************************************************
+//START OF "fileHeader"
+    //<fileHeader companyName="" productName="" productVersion="" creationDateTime="" />
+    elemChild_1 = doc.createElement( "fileHeader" );
+    attr =doc.createAttribute("companyName");
+    attr.setValue("BZK");
+    elemChild_1.setAttributeNode(attr);
+    attr =doc.createAttribute("productName");
+    attr.setValue("CODESYS");
+    elemChild_1.setAttributeNode(attr);
+    attr =doc.createAttribute("productVersion");
+    attr.setValue("CODESYS V3.5 SP17");
+    elemChild_1.setAttributeNode(attr);
+    attr =doc.createAttribute("creationDateTime");
+    attr.setValue("2023-01-01T01:01:01.0000001");
+    elemChild_1.setAttributeNode(attr);
+    //Append child to project
+    elemProject.appendChild(elemChild_1);
+    //****************************************************
+//END OF "fileHeader"
+//START OF "ContentHeader"
+    //<contentHeader name="" modificationDateTime="">
+    elemChild_1 = doc.createElement( "contentHeader" );
+    attr =doc.createAttribute("name");
+    attr.setValue("AUTOMATIC_INTERFACE_GENERATOR.project");
+    elemChild_1.setAttributeNode(attr);
+    attr =doc.createAttribute("modificationDateTime");
+    attr.setValue("2023-01-01T01:01:01.0000001");
+    elemChild_1.setAttributeNode(attr);
+    //Append child to project
+    elemProject.appendChild(elemChild_1);
+    //****************************************************
+    //<coordinateInfo>
+    elemChild_2 = doc.createElement("coordinateInfo");
+    elemChild_4 = doc.createElement("scaling"); // Make Child4 "scaling"
+    attr =doc.createAttribute("y");
+    attr.setValue("1");
+    elemChild_4.setAttributeNode(attr);         //<scaling x="1"/>
+    attr =doc.createAttribute("x");
+    attr.setValue("1");
+    elemChild_4.setAttributeNode(attr);         //<scaling Y="1"/>
+    elemChild_1.appendChild(elemChild_2);
+    elemChild_3 = doc.createElement("fbd");
+    elemChild_3.appendChild(elemChild_4);       //Append "scaling" to "fbd"
+    elemChild_2.appendChild(elemChild_3);       //Append "fpd" to "coordinateInfo"
+    elemChild_3 = doc.createElement("ld");      //Make Child3 "ld"
+    elemChild_3.appendChild(elemChild_4);       //Append "scaling" to "ld"
+    elemChild_2.appendChild(elemChild_3);       //Append "ld" to "coordinateInfo"
+    elemChild_3 = doc.createElement("sfc");     //Make Child3 "sfc"
+    elemChild_3.appendChild(elemChild_4);       //Append "scaling" to "sfc"
+    elemChild_2.appendChild(elemChild_3);       //Append "sfc" to "coordinateInfo"
+
+    //****************************************************
+    //<addData>
+    elemChild_2 = doc.createElement("appData");
+    elemChild_1.appendChild(elemChild_2);
+    elemChild_3 = doc.createElement("data");
+    attr = doc.createAttribute("name");
+    attr.setValue("http://www.3s-software.com/plcopenxml/projectinformation");
+    elemChild_3.setAttributeNode(attr);
+    elemChild_2.appendChild(elemChild_3);
+    elemChild_4 = doc.createElement("ProjectInformation");
+    elemChild_3.appendChild(elemChild_4);
+//END OF "ContentHeader"
+//START OF "types"
+    elemChild_1 = doc.createElement("types");
+    elemChild_2 = doc.createElement("dataTypes");
+    elemChild_3 = doc.createElement("dataType");
+    elemChild_4 = doc.createElement("baseType");
+    elemChild_5 = doc.createElement("struct");
+    attr = doc.createAttribute("name");
+    attr.setValue(this->dutName);
+    elemChild_3.setAttributeNode(attr);
+    elemChild_4.appendChild(elemChild_5);
+    elemChild_3.appendChild(elemChild_4);
+    elemChild_2.appendChild(elemChild_3);
+    elemChild_1.appendChild(elemChild_2);
+    elemProject.appendChild(elemChild_1);
+
+//END OF "types"
+
+     doc.save(out, 4);
+            return true;
+}

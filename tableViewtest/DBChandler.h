@@ -10,6 +10,8 @@
 #include <QStringList>
 #include <QFileSystemWatcher>
 #include <QTimer>
+#include <QDomDocument>
+
 typedef QMap<QString,dataContainer*>  interface;
 
 class DBCHandler : public QObject
@@ -53,19 +55,22 @@ signals:
     void fileandLockOk();
 
 private:
-    //Private Variables
+    //Private Variables starts
     //***********************************
     interface comInterface;
     QString folderLoc;
     QString dutName;
+    QString dutHeader;
     bool isAllInserted;
     QString m_errCode;
-
-    //Private methods
+    //***********************************
+    //Private Variables ends
+    //Private methods starts
     //***********************************
 
-
-    // Reading Process from dbc file
+    //Private methods ends
+    //***********************************
+    // Reading Process from dbc file start
     //***********************************
     void openFile();
     bool parseMessages(QFile *ascFile);
@@ -78,8 +83,13 @@ private:
     double parseMaxValue(QString  splitedPart);
     double parseMinValue(QString  splitedPart);
     QString parseComment(QString splitedPart);
-    // Reading Process from asc file
-
+    //***********************************
+    // Reading Process from dbc file end
+    //Generate XML file start
+    //***********************************
+    bool createXml_STG1(QFile * xmlFile);
+    //***********************************
+    //Generate XML file end
 
 };
 
