@@ -486,6 +486,10 @@ Rectangle {
             stack.push("fileDialogPage.qml")
         }
     }
+    Connections{
+        target:ioComboBox
+        onActivated: comObj.setIOType(areaConfig.dutIOHeader);
+    }
 }
 
 

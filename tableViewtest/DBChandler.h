@@ -11,9 +11,10 @@
 #include <QFileSystemWatcher>
 #include <QTimer>
 #include <QDomDocument>
-
+#include <QDateTime>
+#include <random>
 typedef QMap<QString,dataContainer*>  interface;
-
+typedef QList<QList<QString>> fbType;
 class DBCHandler : public QObject
 {
     Q_OBJECT
@@ -21,8 +22,7 @@ class DBCHandler : public QObject
 public:
     static unsigned int selectedMessageCounter;
     explicit DBCHandler(QObject *parent = nullptr);
-    QString dbcPath;
-    QString displayReqSignalID;
+
 
 
     Q_PROPERTY(QString errCode READ errCode WRITE setErrCode NOTIFY errCodeChanged)
@@ -40,6 +40,7 @@ public slots:
     void setDisplayReqSignal(QString signalID);
     void setFolderLoc(QString folderLoc);
     void setDutName(QString dutName);
+    void setIOType(QString setIOType);
     //Tableview format nested vectors
     QList<QList<QString>> messagesList();
     QList<QList<QString>> signalsList();
@@ -59,10 +60,16 @@ private:
     //***********************************
     interface comInterface;
     QString folderLoc;
+    QString dbcPath;
+    QString displayReqSignalID;
     QString dutName;
     QString dutHeader;
+    QString IOType;
     bool isAllInserted;
     QString m_errCode;
+    fbType fbNameandObjId;
+    QString dutObjID;
+    QString pouObjID;
     //***********************************
     //Private Variables ends
     //Private methods starts
@@ -75,6 +82,10 @@ private:
     void openFile();
     bool parseMessages(QFile *ascFile);
     bool generateNewMessage(QString messageID, QString messageName , unsigned short messageDLC);
+    bool createObjIds();
+    QString getObjID();
+    QString getrand(unsigned long long max);
+
     bool addSignalToMessage(QString messageID, dataContainer::signal curSignal);
     unsigned short parseLength(QString  splitedPart);
     unsigned short parseStartBit(QString  splitedPart);
@@ -87,7 +98,10 @@ private:
     // Reading Process from dbc file end
     //Generate XML file start
     //***********************************
-    bool createXml_STG1(QFile * xmlFile);
+    void extracted();
+    bool createXml_STG1(QFile *xmlFile);
+    void generateVariables(QDomElement*strucT);
+    void generatePous(QDomElement*pous);
     //***********************************
     //Generate XML file end
 
