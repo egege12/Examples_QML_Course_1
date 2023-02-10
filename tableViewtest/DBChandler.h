@@ -100,8 +100,8 @@ private:
     //***********************************
     void extracted();
     bool createXml_STG1(QFile *xmlFile);
-    void generateVariables(QDomElement*strucT);
-    void generatePous(QDomElement*pous);
+    void generateVariables(QDomElement*strucT,QDomDocument &doc);
+    void generatePous(QDomElement*pous,QDomDocument &doc);
     //***********************************
     //Generate XML file end
 

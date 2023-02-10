@@ -194,6 +194,13 @@ bool DBCHandler::parseMessages(QFile *ascFile)
             QString commentContainer = parseComment(curLine);
             curSignal.comment = commentContainer;
             curSignal.isJ1939 = commentContainer.contains(QString("j1939"),Qt::CaseInsensitive);
+            if(commentContainer.contains(QString("defValue="),Qt::CaseInsensitive)){
+                curSignal.defValue=commentContainer.mid(commentContainer.indexOf("defValue=")+9,10).trimmed().toDouble();
+            }else{
+                curSignal.defValue=0.0;
+            }
+
+
             addSignalToMessage (messageID,curSignal);
 
         }else{
@@ -450,13 +457,16 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
     {
     //****************************************************
     //<addData>
-    QDomElement appData = doc.createElement("appData");
-    contentHeader.appendChild(appData);
+    QDomElement addData = doc.createElement("addData");
+    contentHeader.appendChild(addData);
     QDomElement data = doc.createElement("data");
     attr = doc.createAttribute("name");
     attr.setValue("http://www.3s-software.com/plcopenxml/projectinformation");
     data.setAttributeNode(attr);
-    appData.appendChild(data);
+    attr = doc.createAttribute("handleUnknown");
+    attr.setValue("implementation");
+    data.setAttributeNode(attr);
+    addData.appendChild(data);
     QDomElement ProjectInformation = doc.createElement("ProjectInformation");
     data.appendChild(ProjectInformation);
 }
@@ -470,15 +480,29 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
     QDomElement dataType = doc.createElement("dataType");
     QDomElement baseType = doc.createElement("baseType");
     QDomElement strucT = doc.createElement("struct");
+    QDomElement addData = doc.createElement("addData");
+    QDomElement data = doc.createElement("data");
+    QDomElement ObjectId = doc.createElement("ObjectId");
     attr = doc.createAttribute("name");
     attr.setValue(this->dutName);
     dataType.setAttributeNode(attr);
-    this->generateDataTypes(&strucT);
+    this->generateVariables(&strucT,doc);
     baseType.appendChild(strucT);
     dataType.appendChild(baseType);
+    attr = doc.createAttribute("name");
+    attr.setValue("http://www.3s-software.com/plcopenxml/objectid");
+    data.setAttributeNode(attr);
+    attr = doc.createAttribute("handleUnknown");
+    attr.setValue("discard");
+    data.setAttributeNode(attr);
+    text=doc.createTextNode(dutObjID);
+    ObjectId.appendChild(text);
+    data.appendChild(ObjectId);
+    addData.appendChild(data);
+    dataType.appendChild(addData);
     dataTypes.appendChild(dataType);
     types.appendChild(dataTypes);
-    this->generatePous(&pous);
+    this->generatePous(&pous,doc);
     types.appendChild(pous);
     elemProject.appendChild(types);
 
@@ -512,7 +536,7 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
     attr.setValue("FD_Library_Application"); // Folder name for Function blocks
     folder1.setAttributeNode(attr);
     QDomElement folder2 = doc.createElement("Folder");
-    attr= doc.createAttribute("Name");
+  /* attr= doc.createAttribute("Name");
     attr.setValue("_FB_"+this->dutHeader+"_MessageBlocks"); // Folder name for Function blocks
     folder2.setAttributeNode(attr);
     folder1.appendChild(folder2);
@@ -526,7 +550,7 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
         attr.setValue(data.at(1));
         object.setAttributeNode(attr);
         folder2.appendChild(object);
-    }
+    }*/
     //DUTs
     ProjectStructure.appendChild(folder1);
     folder1 = doc.createElement("Folder");
@@ -542,7 +566,7 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
     folder2.setAttributeNode(attr);
     folder1.appendChild(folder2);
     ProjectStructure.appendChild(folder1);
-    //Pous
+ /*   //Pous
     folder1 = doc.createElement("Folder");
     attr= doc.createAttribute("Name");
     attr.setValue("FD_POUs"); // Folder name for Function blocks
@@ -556,7 +580,7 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
     folder2.setAttributeNode(attr);
     folder1.appendChild(folder2);
     ProjectStructure.appendChild(folder1);
-
+*/
 //END OF "addData"
 }
 
@@ -564,12 +588,121 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
      return true;
 }
 
-void DBCHandler::generateVariables(QDomElement * strucT)
+void DBCHandler::generateVariables(QDomElement * strucT, QDomDocument &doc)
 {
     QDomAttr attr;
+    QDomText text;
+
+    foreach(dataContainer *const curValue , comInterface){
+        if(curValue->getIfSelected()){
+            for(const dataContainer::signal * curSignal : *curValue->getSignalList()){
+                QDomElement variable = doc.createElement("variable");
+                attr = doc.createAttribute("name");
+                attr.setValue(curSignal->name);
+                variable.setAttributeNode(attr);
+                { //type and derived element with name attribut
+                QDomElement type = doc.createElement("type");
+                QDomElement derived = doc.createElement("derived");
+                attr = doc.createAttribute("name");
+                attr.setValue(curSignal->appDataType+"_T");
+                derived.setAttributeNode(attr);
+                type.appendChild(derived);
+                variable.appendChild(type);
+                }
+                {//initialValue
+                QDomElement initialValue = doc.createElement("initialValue");
+                QDomElement structValue = doc.createElement("structValue");
+                if((curSignal->appDataType)!="BOOL"){
+                QDomElement value = doc.createElement("value");
+                attr = doc.createAttribute("member");
+                attr.setValue("Param_Max");
+                value.setAttributeNode(attr);
+                QDomElement simpleValue = doc.createElement("simpleValue");
+                attr = doc.createAttribute("value");
+                attr.setValue(QString::number(curSignal->maxValue));
+                simpleValue.setAttributeNode(attr);
+                value.appendChild(simpleValue);
+                structValue.appendChild(value);
+                }
+                if((curSignal->appDataType)!="BOOL"){
+                QDomElement value = doc.createElement("value");
+                attr = doc.createAttribute("member");
+                attr.setValue("Param_Min");
+                value.setAttributeNode(attr);
+                QDomElement simpleValue = doc.createElement("simpleValue");
+                attr = doc.createAttribute("value");
+                attr.setValue(QString::number(curSignal->minValue));
+                simpleValue.setAttributeNode(attr);
+                value.appendChild(simpleValue);
+                structValue.appendChild(value);
+                }
+                if(((curSignal->appDataType)=="REAL")||((curSignal->appDataType)=="LREAL")){
+                QDomElement value = doc.createElement("value");
+                attr = doc.createAttribute("member");
+                attr.setValue("Param_Res");
+                value.setAttributeNode(attr);
+                QDomElement simpleValue = doc.createElement("simpleValue");
+                attr = doc.createAttribute("value");
+                attr.setValue(QString::number(curSignal->resolution));
+                simpleValue.setAttributeNode(attr);
+                value.appendChild(simpleValue);
+                structValue.appendChild(value);
+                }
+                if(((curSignal->appDataType)=="REAL")||((curSignal->appDataType)=="LREAL")){
+                QDomElement value = doc.createElement("value");
+                attr = doc.createAttribute("member");
+                attr.setValue("Param_Off");
+                value.setAttributeNode(attr);
+                QDomElement simpleValue = doc.createElement("simpleValue");
+                attr = doc.createAttribute("value");
+                attr.setValue(QString::number(curSignal->offset));
+                simpleValue.setAttributeNode(attr);
+                value.appendChild(simpleValue);
+                structValue.appendChild(value);
+                }
+                if((curSignal->appDataType)!="BOOL"){
+                QDomElement value = doc.createElement("value");
+                attr = doc.createAttribute("member");
+                attr.setValue("Param_Def");
+                value.setAttributeNode(attr);
+                QDomElement simpleValue = doc.createElement("simpleValue");
+                attr = doc.createAttribute("value");
+                attr.setValue(QString::number(curSignal->defValue));
+                simpleValue.setAttributeNode(attr);
+                value.appendChild(simpleValue);
+                structValue.appendChild(value);
+                }
+                {
+                QDomElement value = doc.createElement("value");
+                attr = doc.createAttribute("member");
+                attr.setValue("x");
+                value.setAttributeNode(attr);
+                QDomElement simpleValue = doc.createElement("simpleValue");
+                attr = doc.createAttribute("value");
+                attr.setValue(QString::number(curSignal->defValue));
+                simpleValue.setAttributeNode(attr);
+                value.appendChild(simpleValue);
+                structValue.appendChild(value);
+                }
+                initialValue.appendChild(structValue);
+                variable.appendChild(initialValue);
+                }
+                QDomElement documentation=doc.createElement("documentation");
+                QDomElement xhtml = doc.createElement("xhtml");
+                attr=doc.createAttribute("xmlns");
+                attr.setValue("http://www.w3.org/1999/xhtml");
+                xhtml.setAttributeNode(attr);
+                text =doc.createTextNode(curSignal->comment+"/StartBit:"+QString::number(curSignal->startBit)+"/Length:"+QString::number(curSignal->length)+"/J1939:"+((curSignal->isJ1939)?"YES":"NO"));
+                xhtml.appendChild(text);
+                documentation.appendChild(xhtml);
+                variable.appendChild(documentation);
+                strucT->appendChild(variable);
+                }
+        }
+    }
 }
 
-void DBCHandler::generatePous(QDomElement * pous)
+void DBCHandler::generatePous(QDomElement * pous, QDomDocument &doc)
 {
     QDomAttr attr;
 }

@@ -60,6 +60,7 @@ struct dataContainer::signal{
     double offset;
     double maxValue;
     double minValue;
+    double defValue;
     QString comment;
     QString appDataType;
     QString comDataType;
