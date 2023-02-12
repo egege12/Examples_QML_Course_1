@@ -68,7 +68,7 @@ Rectangle {
 
                         implicitHeight: text.implicitHeight + 2
                         implicitWidth: text.implicitWidth +2
-                        color: (heading==true)?"#2d2d2d": (rowLayout.selectedMessage == messageid )? "#EDEDE0":"#EDEDF0"
+                        color: (heading==true)?"#2d2d2d": (rowLayout.selectedMessage == messageid )? "#EDEDE0":(selected == true)? "#FEBBAA" :"#EDEDF0"
 
                         Text {
                             id:text

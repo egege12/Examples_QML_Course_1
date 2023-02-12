@@ -25,6 +25,8 @@ QVariant tablemodel::data(const QModelIndex &index, int role) const
         return table.at(index.row()).at(1);
     case MessageName:
         return table.at(index.row()).at(0);
+    case Selected:
+        return (table.at(index.row()).at(3)== "X");
     case HeadingRole:
         if (index.row() ==0 ){
                 return true;
@@ -47,6 +49,7 @@ QHash<int, QByteArray> tablemodel::roleNames() const
     roles[HeadingRole] = "heading";
     roles[MessageID] = "messageid";
     roles[MessageName] = "messagename";
+    roles[Selected] = "selected";
     return roles;
 }
 

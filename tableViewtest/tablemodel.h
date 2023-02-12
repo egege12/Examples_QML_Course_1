@@ -11,7 +11,8 @@ class tablemodel : public QAbstractTableModel
         TableDataRole = Qt::UserRole+1,
         HeadingRole,
         MessageID,
-        MessageName
+        MessageName,
+        Selected
     };
 
 public:
