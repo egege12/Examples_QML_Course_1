@@ -1,4 +1,16 @@
 #include "tablemodel.h"
+#include <QtAlgorithms>
+unsigned int tablemodel::scolumnID = 1;
+QVector<bool> tablemodel::columnNumber ={false,false,false,false,false,false,false,false};
+bool tablemodel::variableLessThan(const QList<QString>& a, const QList<QString>& b)
+{
+    return a.at(tablemodel::scolumnID)< b.at(tablemodel::scolumnID);
+}
+
+bool tablemodel::variableHigherThan(const QList<QString> &a, const QList<QString> &b)
+{
+    return a.at(tablemodel::scolumnID) > b.at(tablemodel::scolumnID);
+}
 
 tablemodel::tablemodel(QAbstractTableModel *parent)
     : QAbstractTableModel{parent}
@@ -29,6 +41,7 @@ QVariant tablemodel::data(const QModelIndex &index, int role) const
         return (table.at(index.row()).at(3)== "X");
     case HeadingRole:
         if (index.row() ==0 ){
+                tablemodel::scolumnID=index.column();
                 return true;
         }else{
                 return false;
@@ -60,13 +73,33 @@ QList<QList<QString> > tablemodel::getTable()
 
 void tablemodel::setTable(QList<QList<QString> > table)
 {
-
     beginResetModel();
     this->table.clear();
     qInfo()<<"table appended";
     this->table.append(table);
-    emit this->tableChanged();
     endResetModel();
+    emit this->tableChanged();
 }
 
+void tablemodel::sortColumn()
+{
+    beginResetModel();
+    if(tablemodel::columnNumber.at(tablemodel::scolumnID)){
+        std::sort(table.begin()+1,table.end(),variableLessThan);
+    }else{
+        std::sort(table.begin()+1,table.end(),variableHigherThan);
+    }
+    tablemodel::columnNumber[tablemodel::scolumnID]= !tablemodel::columnNumber[tablemodel::scolumnID];
+    endResetModel();
+}
+void tablemodel::sortColumnPrivate()
+{
+    beginResetModel();
+    if(tablemodel::columnNumber.at(tablemodel::scolumnID)){
+        std::sort(table.begin()+1,table.end(),variableLessThan);
+    }else{
+        std::sort(table.begin()+1,table.end(),variableHigherThan);
+    }
+    endResetModel();
+}
 

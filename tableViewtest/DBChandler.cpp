@@ -66,7 +66,7 @@ void DBCHandler::clearData()
         delete curValue;
     }
     comInterface.clear();
-    setErrCode("Table cleaned");
+    setErrCode("Tablo temizlendi");
 }
 
 void DBCHandler::readFile(QString fileLocation)

@@ -6,9 +6,8 @@ import QtQuick.Layouts 1.0
 
 Rectangle {
     id: messageSelPage
-    width : parent
-    height: parent
     anchors.fill: parent
+    anchors.topMargin: 37
     color: "#d3d3d3"
     border.width: 0
     gradient: Gradient {
@@ -84,112 +83,122 @@ Rectangle {
                         MouseArea{
                             anchors.fill: parent
                             onClicked: {
-                                comObj.setDisplayReqSignal(messageid)
-                                rowLayout.selectedMessage = messageid}
+                                if(heading===true){
+                                    tableMessages.sortColumn();
+                                }else{
+                                    comObj.setDisplayReqSignal(messageid)
+                                    rowLayout.selectedMessage = messageid
+                                }
+                        }
                             onDoubleClicked: {
-                                comObj.setSelected(messageid)
+                                    comObj.setSelected(messageid)
+                                }
                             }
+
+
                         }
 
-
                     }
-
-
                 }
-            }
-            /*Rectangle {
+                /*Rectangle {
             id:midArea
             Layout.preferredHeight: 400
             Layout.preferredWidth: 70
             Layout.alignment: Qt.AlignCenter
 
         }*/
-            Rectangle {
-                id:signalRectangle
-                Layout.preferredHeight: messageSelPage.height*0.7
-                Layout.preferredWidth: messageSelPage.width/2
-                Layout.alignment: Qt.AlignRight
-                anchors.right:parent.right
-                anchors.rightMargin: 20
-                anchors.left:messageRectangle.right
-                anchors.leftMargin: 5
+                Rectangle {
+                    id:signalRectangle
+                    Layout.preferredHeight: messageSelPage.height*0.7
+                    Layout.preferredWidth: messageSelPage.width/2
+                    Layout.alignment: Qt.AlignRight
+                    anchors.right:parent.right
+                    anchors.rightMargin: 20
+                    anchors.left:messageRectangle.right
+                    anchors.leftMargin: 5
 
 
-                onWidthChanged: {
-                    tableViewSignals.columnWidths[0] = signalRectangle.width*.3
-                    tableViewSignals.columnWidths[1] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[2] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[3] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[4] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[5] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[6] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[7] = signalRectangle.width*.1
-                    tableViewSignals.forceLayout();
-                }
-
-                property string selectedSignalName : ""
-
-                TableView {
-                    id:tableViewSignals
-                    anchors.fill: parent
-                    columnSpacing: 1
-                    rowSpacing: 1
-                    clip: true
-
-
-
-                    model: TableModelSignal{
-                        id: tableSignals
+                    onWidthChanged: {
+                        tableViewSignals.columnWidths[0] = signalRectangle.width*.3
+                        tableViewSignals.columnWidths[1] = signalRectangle.width*.1
+                        tableViewSignals.columnWidths[2] = signalRectangle.width*.1
+                        tableViewSignals.columnWidths[3] = signalRectangle.width*.1
+                        tableViewSignals.columnWidths[4] = signalRectangle.width*.1
+                        tableViewSignals.columnWidths[5] = signalRectangle.width*.1
+                        tableViewSignals.columnWidths[6] = signalRectangle.width*.1
+                        tableViewSignals.columnWidths[7] = signalRectangle.width*.1
+                        tableViewSignals.forceLayout();
                     }
 
+                    property string selectedSignalName : ""
+
+                    TableView {
+                        id:tableViewSignals
+                        anchors.fill: parent
+                        columnSpacing: 1
+                        rowSpacing: 1
+                        clip: true
 
 
-                    property bool enableVScrollbar: true
-                    ScrollBar.vertical: ScrollBar{
-                        visible:  tableViewSignals.enableVScrollbar  // not sure if you need to use enable or not
-                    }
-                    property bool enableHScrollbar: true
-                    ScrollBar.horizontal: ScrollBar{
-                        visible:  tableViewSignals.enableHScrollbar  // not sure if you need to use enable or not
-                    }
-                    property var columnWidths: [220, 100, 80, 80,80,80,80,80]
-                    columnWidthProvider: function (column) { return columnWidths[column] }
-                    Timer {
-                        running: true
-                        interval: 1000
-                        onTriggered: {
-                            tableViewSignals.columnWidths[0] = signalRectangle.width*.3
-                            tableViewSignals.columnWidths[1] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[2] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[3] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[4] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[5] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[6] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[7] = signalRectangle.width*.1
-                            tableViewSignals.forceLayout();
+
+                        model: TableModelSignal{
+                            id: tableSignals
                         }
-                    }
 
-                    delegate: Rectangle {
 
-                        implicitHeight: textSignal.implicitHeight + 2
-                        implicitWidth: textSignal.implicitWidth +2
-                        color: (heading==true)?"#2d2d2d": (signalRectangle.selectedSignalName == messagename )? "#EDEDE0":"#EDEDF0"
 
-                        Text {
-                            id:textSignal
-                            text: tabledata
-                            width:tableSignals.width
-                            padding: 1
-                            font.pointSize: 10
-                            elide: Text.ElideRight
-                            font.preferShaping: false
-                            color: "#838383"
-                            Layout.alignment: Qt.AlignLeft
+                        property bool enableVScrollbar: true
+                        ScrollBar.vertical: ScrollBar{
+                            visible:  tableViewSignals.enableVScrollbar  // not sure if you need to use enable or not
                         }
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {signalRectangle.selectedSignalName = messagename}
+                        property bool enableHScrollbar: true
+                        ScrollBar.horizontal: ScrollBar{
+                            visible:  tableViewSignals.enableHScrollbar  // not sure if you need to use enable or not
+                        }
+                        property var columnWidths: [220, 100, 80, 80,80,80,80,80]
+                        columnWidthProvider: function (column) { return columnWidths[column] }
+                        Timer {
+                            running: true
+                            interval: 1000
+                            onTriggered: {
+                                tableViewSignals.columnWidths[0] = signalRectangle.width*.3
+                                tableViewSignals.columnWidths[1] = signalRectangle.width*.1
+                                tableViewSignals.columnWidths[2] = signalRectangle.width*.1
+                                tableViewSignals.columnWidths[3] = signalRectangle.width*.1
+                                tableViewSignals.columnWidths[4] = signalRectangle.width*.1
+                                tableViewSignals.columnWidths[5] = signalRectangle.width*.1
+                                tableViewSignals.columnWidths[6] = signalRectangle.width*.1
+                                tableViewSignals.columnWidths[7] = signalRectangle.width*.1
+                                tableViewSignals.forceLayout();
+                            }
+                        }
+
+                        delegate: Rectangle {
+
+                            implicitHeight: textSignal.implicitHeight + 2
+                            implicitWidth: textSignal.implicitWidth +2
+                            color: (heading==true)?"#2d2d2d": (signalRectangle.selectedSignalName == messagename )? "#EDEDE0":"#EDEDF0"
+
+                            Text {
+                                id:textSignal
+                                text: tabledata
+                                width:tableSignals.width
+                                padding: 1
+                                font.pointSize: 10
+                                elide: Text.ElideRight
+                                font.preferShaping: false
+                                color: "#838383"
+                                Layout.alignment: Qt.AlignLeft
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    if(heading===true){
+                                        tableSignals.sortColumn();
+                                    }else{
+                                        signalRectangle.selectedSignalName = messagename
+                                    }
+                                }
                         }
 
                     }
@@ -461,7 +470,7 @@ Rectangle {
     }
     Connections{
         target: comObj
-        onInterfaceReady :tableMessages.setTable(comObj.messagesList())
+        onInterfaceReady : tableMessages.setTable(comObj.messagesList())
     }
     Connections{
         target: comObj

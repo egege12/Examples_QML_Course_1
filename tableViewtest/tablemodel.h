@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QAbstractTableModel>
 #include <QDebug>
+
 class tablemodel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -14,6 +15,10 @@ class tablemodel : public QAbstractTableModel
         MessageName,
         Selected
     };
+    static unsigned int scolumnID;
+    static QVector<bool> columnNumber;
+    static bool variableLessThan(const QList<QString>& a, const QList<QString>& b);
+    static bool variableHigherThan(const QList<QString>& a, const QList<QString>& b);
 
 public:
 
@@ -38,6 +43,8 @@ signals:
     void tableChanged();
 public slots:
     void setTable(QList<QList<QString>> table);
+    void sortColumn();
+    void sortColumnPrivate();
 };
 
 #endif // TABLEMODEL_H

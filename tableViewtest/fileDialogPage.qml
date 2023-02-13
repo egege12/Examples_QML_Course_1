@@ -204,10 +204,10 @@ Item {
                 y: 276
                 source: "qrc:/img/img/imgLogo.png"
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 6
+                anchors.top: parent.top
+                anchors.topMargin: 40
                 width: parent.width*.95
                 height: 228
-                anchors.top: parent.top
                 fillMode:Image.PreserveAspectFit
             }
         }
