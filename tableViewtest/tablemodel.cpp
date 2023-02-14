@@ -1,6 +1,7 @@
 #include "tablemodel.h"
 #include <QtAlgorithms>
 unsigned int tablemodel::scolumnID = 1;
+unsigned int tablemodel::lastColumnID = 0;
 QVector<bool> tablemodel::columnNumber ={false,false,false,false,false,false,false,false};
 bool tablemodel::variableLessThan(const QList<QString>& a, const QList<QString>& b)
 {
@@ -50,7 +51,11 @@ QVariant tablemodel::data(const QModelIndex &index, int role) const
     case MessageName:
         return table.at(index.row()).at(0);
     case Selected:
-        return (table.at(index.row()).at(3)== "X");
+        return (table.at(index.row()).at(4)== "X");
+    case ActiveSortHeader:
+        return index.column() ==tablemodel::lastColumnID;
+    case SortHeader:
+        return (index.row() ==0 ) && tablemodel::columnNumber.at(tablemodel::lastColumnID) && index.column() ==tablemodel::lastColumnID;
     case HeadingRole:
         if (index.row() ==0 ){
                 tablemodel::scolumnID=index.column();
@@ -75,6 +80,8 @@ QHash<int, QByteArray> tablemodel::roleNames() const
     roles[MessageID] = "messageid";
     roles[MessageName] = "messagename";
     roles[Selected] = "selected";
+    roles[SortHeader]="sortheader";
+    roles[ActiveSortHeader]="activesortheader";
     return roles;
 }
 
@@ -102,6 +109,7 @@ void tablemodel::sortColumn()
         std::sort(table.begin()+1,table.end(),variableHigherThan);
     }
     tablemodel::columnNumber[tablemodel::scolumnID]= !tablemodel::columnNumber[tablemodel::scolumnID];
+    tablemodel::lastColumnID = tablemodel::scolumnID;
     endResetModel();
 }
 void tablemodel::sortColumnPrivate()
@@ -112,6 +120,7 @@ void tablemodel::sortColumnPrivate()
     }else{
         std::sort(table.begin()+1,table.end(),variableHigherThan);
     }
+    tablemodel::scolumnID = tablemodel::lastColumnID;
     endResetModel();
 }
 

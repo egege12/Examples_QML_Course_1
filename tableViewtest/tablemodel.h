@@ -13,9 +13,12 @@ class tablemodel : public QAbstractTableModel
         HeadingRole,
         MessageID,
         MessageName,
-        Selected
+        Selected,
+        SortHeader,
+        ActiveSortHeader
     };
     static unsigned int scolumnID;
+    static unsigned int lastColumnID;
     static QVector<bool> columnNumber;
     static bool variableLessThan(const QList<QString>& a, const QList<QString>& b);
     static bool variableHigherThan(const QList<QString>& a, const QList<QString>& b);

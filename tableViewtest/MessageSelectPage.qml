@@ -38,10 +38,10 @@ Rectangle {
                 anchors.left:parent.left
                 anchors.leftMargin: 20
                 onWidthChanged: {
-                    tableViewMessages.columnWidths[0] = messageRectangle.width*.4
+                    tableViewMessages.columnWidths[0] = messageRectangle.width*.3
                     tableViewMessages.columnWidths[1] = messageRectangle.width*.2
-                    tableViewMessages.columnWidths[2] = messageRectangle.width*.1
-                    tableViewMessages.columnWidths[3] = messageRectangle.width*.1
+                    tableViewMessages.columnWidths[2] = messageRectangle.width*.2
+                    tableViewMessages.columnWidths[3] = messageRectangle.width*.2
                     tableViewMessages.columnWidths[4] = messageRectangle.width*.2
                     tableViewMessages.forceLayout();
                 }
@@ -60,7 +60,11 @@ Rectangle {
                     ScrollBar.vertical: ScrollBar{
                         visible:  tableViewMessages.enableScrollbar  // not sure if you need to use enable or not
                     }
-                    property var columnWidths: [220, 100, 80, 80]
+                    property bool enableHScrollbar: true
+                    ScrollBar.horizontal: ScrollBar{
+                        visible:  tableViewMessages.enableHScrollbar  // not sure if you need to use enable or not
+                    }
+                    property var columnWidths: [220, 100, 80, 80, 100]
                     columnWidthProvider: function (column) { return columnWidths[column] }
 
 
@@ -68,7 +72,7 @@ Rectangle {
 
                         implicitHeight: text.implicitHeight + 2
                         implicitWidth: text.implicitWidth +2
-                        color: (heading==true)?"#2d2d2d": (rowLayout.selectedMessage == messageid )? "#EDEDE0":(selected == true)? "#FEBBAA" :"#EDEDF0"
+                        color: (heading===true)?"#2d2d2d": (rowLayout.selectedMessage === messageid )? "#EDEDE0":(selected === true)? "#FEBBAA" :"#EDEDF0"
 
                         Text {
                             id:text
@@ -97,6 +101,15 @@ Rectangle {
                                 }
                             }
                         }
+                        Image{
+                            visible: (heading===true)? true : false
+                            source: (activesortheader===true)? ((sortheader===true)? "qrc:/img/img/sortDnEnabled.png" :"qrc:/img/img/sortUpEnabled.png"):"qrc:/img/img/sortNotEnable.png"
+                            height:parent.height*0.8
+                            anchors.right:parent.right
+                            anchors.rightMargin: width*0.05
+                            fillMode:Image.PreserveAspectFit
+                            antialiasing: true
+                        }
 
 
                     }
@@ -123,15 +136,15 @@ Rectangle {
 
                 onWidthChanged: {
                     tableViewSignals.columnWidths[0] = signalRectangle.width*.3
-                    tableViewSignals.columnWidths[1] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[2] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[3] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[4] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[5] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[6] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[7] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[8] = signalRectangle.width*.1
-                    tableViewSignals.columnWidths[9] = signalRectangle.width*.1
+                    tableViewSignals.columnWidths[1] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[2] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[3] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[4] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[5] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[6] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[7] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[8] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[9] = signalRectangle.width*.2
                     tableViewSignals.forceLayout();
                 }
 
@@ -160,22 +173,22 @@ Rectangle {
                     ScrollBar.horizontal: ScrollBar{
                         visible:  tableViewSignals.enableHScrollbar  // not sure if you need to use enable or not
                     }
-                    property var columnWidths: [220, 100, 80, 80,80,80,80,80]
+                    property var columnWidths: [220, 100, 80, 80,80,80,80,100,100,100]
                     columnWidthProvider: function (column) { return columnWidths[column] }
                     Timer {
                         running: true
                         interval: 1000
                         onTriggered: {
                             tableViewSignals.columnWidths[0] = signalRectangle.width*.3
-                            tableViewSignals.columnWidths[1] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[2] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[3] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[4] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[5] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[6] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[7] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[8] = signalRectangle.width*.1
-                            tableViewSignals.columnWidths[9] = textSignal.paintedWidth
+                            tableViewSignals.columnWidths[1] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[2] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[3] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[4] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[5] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[6] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[7] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[8] = signalRectangle.width*.2
+                            tableViewSignals.columnWidths[9] = signalRectangle.width*.2
                             tableViewSignals.forceLayout();
                         }
                     }
@@ -184,19 +197,21 @@ Rectangle {
 
                         implicitHeight: textSignal.implicitHeight + 2
                         implicitWidth: textSignal.implicitWidth +2
-                        color: (heading==true)?"#2d2d2d": (signalRectangle.selectedSignalName == messagename )? "#EDEDE0":"#EDEDF0"
+                        color: (heading===true)?"#2d2d2d": (signalRectangle.selectedSignalName === messagename )? "#EDEDE0":"#EDEDF0"
 
                         Text {
                             id:textSignal
                             text: tabledata
-                            width:tableSignals.width
+
                             padding: 1
                             font.pointSize: 10
                             elide: Text.ElideRight
                             font.preferShaping: false
                             color: "#838383"
                             Layout.alignment: Qt.AlignLeft
+
                         }
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
@@ -206,6 +221,17 @@ Rectangle {
                                     signalRectangle.selectedSignalName = messagename
                                 }
                             }
+                        }
+                        Image{
+                            visible: (heading===true)? true : false
+                            source: (activesortheader===true)? ((sortheader===true)? "qrc:/img/img/sortDnEnabled.png" :"qrc:/img/img/sortUpEnabled.png"):"qrc:/img/img/sortNotEnable.png"
+                            height:parent.height*0.8
+                            anchors.right:parent.right
+                            anchors.rightMargin: width*0.05
+                            anchors.top:parent.top
+                            anchors.topMargin: 2
+                            fillMode:Image.PreserveAspectFit
+                            antialiasing: true
                         }
 
                     }

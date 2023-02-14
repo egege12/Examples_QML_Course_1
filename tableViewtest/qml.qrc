@@ -18,5 +18,8 @@
         <file>img/iconFullscreenButton.png</file>
         <file>img/iconIconSizeButton.png</file>
         <file>img/headerIcon.png</file>
+        <file>img/sortDnEnabled.png</file>
+        <file>img/sortNotEnable.png</file>
+        <file>img/sortUpEnabled.png</file>
     </qresource>
 </RCC>
