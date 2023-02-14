@@ -26,7 +26,10 @@ public:
     const QList<signal*> * getSignalList();
     QString getName();
     QString getID();
+    QString getMsTimeOut();
+    QString getComment();
     bool getIfSelected();
+    bool getIfExtended();
     unsigned short getDLC();
 
     //Setters
@@ -35,12 +38,16 @@ public:
     void setDLC(unsigned short DLC);
     void setSelected();
     void setInserted();
+    void setMsTimeOut(QString msTimeout);
+    void setComment(QString comment);
 
 
     ~dataContainer();
 private:
     QString Name;
     QString messageID;
+    QString msTimeout;
+    QString comment;
     unsigned short dlc;
     bool isExtended;
     bool isSelected;

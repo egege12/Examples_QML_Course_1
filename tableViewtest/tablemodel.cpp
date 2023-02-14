@@ -4,12 +4,24 @@ unsigned int tablemodel::scolumnID = 1;
 QVector<bool> tablemodel::columnNumber ={false,false,false,false,false,false,false,false};
 bool tablemodel::variableLessThan(const QList<QString>& a, const QList<QString>& b)
 {
-    return a.at(tablemodel::scolumnID)< b.at(tablemodel::scolumnID);
+    bool isNumber1,isNumber2;
+    a.at(tablemodel::scolumnID).toDouble(&isNumber1);
+    b.at(tablemodel::scolumnID).toDouble(&isNumber2);
+    if(isNumber1 && isNumber2)
+        return a.at(tablemodel::scolumnID).toDouble()< b.at(tablemodel::scolumnID).toDouble();
+    else
+        return a.at(tablemodel::scolumnID)< b.at(tablemodel::scolumnID);
 }
 
 bool tablemodel::variableHigherThan(const QList<QString> &a, const QList<QString> &b)
 {
-    return a.at(tablemodel::scolumnID) > b.at(tablemodel::scolumnID);
+    bool isNumber1,isNumber2;
+    a.at(tablemodel::scolumnID).toDouble(&isNumber1);
+    b.at(tablemodel::scolumnID).toDouble(&isNumber2);
+    if(isNumber1 && isNumber2)
+        return a.at(tablemodel::scolumnID).toDouble()> b.at(tablemodel::scolumnID).toDouble();
+    else
+        return a.at(tablemodel::scolumnID)> b.at(tablemodel::scolumnID);
 }
 
 tablemodel::tablemodel(QAbstractTableModel *parent)

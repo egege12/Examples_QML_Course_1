@@ -8,6 +8,8 @@ dataContainer::dataContainer(QObject *parent)
     ++dataContainer::messageCounter;
     this->isInserted=false;
     this->isSelected = false;
+    this->msTimeout ="2500";
+    this->comment="No Comment";
 }
 
 bool dataContainer::addSignal(signal newSignal)
@@ -35,11 +37,26 @@ QString dataContainer::getID()
     return this->messageID;
 }
 
+QString dataContainer::getMsTimeOut()
+{
+    return this->msTimeout;
+}
+
+QString dataContainer::getComment()
+{
+    return this->comment;
+}
+
 
 
 bool dataContainer::getIfSelected()
 {
     return this->isSelected;
+}
+
+bool dataContainer::getIfExtended()
+{
+    return this->isExtended;
 }
 
 unsigned short dataContainer::getDLC()
@@ -77,6 +94,16 @@ void dataContainer::setInserted()
     this->isInserted = true;
 }
 
+void dataContainer::setMsTimeOut(QString msTimeout)
+{
+    this->msTimeout = msTimeout;
+}
+
+void dataContainer::setComment(QString comment)
+{
+    this->comment = comment;
+}
+
 void dataContainer::dataTypeAss(signal *signalPtr)
 {
     if(signalPtr->length == 1 ){
@@ -90,7 +117,7 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "BYTE";
         }
     }else if (signalPtr->length < 8){
-        signalPtr->comDataType = signalPtr->length + QString("XBOOL");
+        signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
             signalPtr->appDataType = "REAL";
         }else if(signalPtr->name.contains("N_")){
@@ -108,7 +135,7 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "BYTE";
         }
     }else if (signalPtr->length <  16){
-        signalPtr->comDataType = signalPtr->length + QString("XBOOL");
+        signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
             signalPtr->appDataType = "REAL";
         }else if(signalPtr->name.contains("N_")){
@@ -126,7 +153,7 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "WORD";
         }
     }else if (signalPtr->length < 32){
-        signalPtr->comDataType = signalPtr->length + QString("XBOOL");
+        signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
             signalPtr->appDataType = "REAL";
         }else if(signalPtr->name.contains("N_")){
@@ -144,7 +171,7 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "DWORD";
         }
     }else if (signalPtr->length < 64){
-        signalPtr->comDataType = signalPtr->length + QString("XBOOL");
+        signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
             signalPtr->appDataType = "LREAL";
         }else if(signalPtr->name.contains("N_")){
