@@ -112,10 +112,10 @@ private:
     //Generate XML file end
     //***********************************
     //Conversion Methods
-    QString *generateIIST(QString *const ST);
-    QString *generateIOST(QString *const ST;
-    QString convTypeComtoApp(QString const& signalName,QString const& starbit,QString const& converType);
-    QString convTypeApptoCom(QString const& signalName,QString const& starbit,QString const& converType);
+    void generateIIST(QString *const ST, dataContainer * const curMessage);
+    void generateIOST(QString *const ST,dataContainer *const curMessage);
+    QString convTypeComtoApp( QString signalName,  QString starbit, QString converType);
+    QString convTypeApptoCom(QString  signalName, QString  starbit, QString converType);
 
 };
 

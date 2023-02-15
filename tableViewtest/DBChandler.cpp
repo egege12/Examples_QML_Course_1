@@ -891,12 +891,12 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
                 {
                     QDomElement variable=doc.createElement("variable");
                     attr=doc.createAttribute("name");
-                    attr.setValue("_FB_CanRx_Message_Unpack_0");
+                    attr.setValue("_FB_CanTx_Message_Unpack_0");
                     variable.setAttributeNode(attr);
                     QDomElement type = doc.createElement("type");
                     QDomElement derived = doc.createElement("derived");
                     attr=doc.createAttribute("name");
-                    attr.setValue("_FB_CanRx_Message_Unpack");
+                    attr.setValue("_FB_CanTx_Message_Unpack");
                     derived.setAttributeNode(attr);
                     type.appendChild(derived);
                     variable.appendChild(type);
@@ -1130,7 +1130,7 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
 
                 interface.appendChild(localVars);
             }
-/**
+            /**
  *
  *
  *
@@ -1150,7 +1150,8 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
             attr.setValue("http://www.w3.org/1999/xhtml");
             xhtml.setAttributeNode(attr);
             QString STcode;
-            text=doc.createTextNode(*this->generateIIST(&STcode));
+            this->generateIIST(&STcode,curMessage);
+            text=doc.createTextNode(STcode);
             xhtml.appendChild(text);
             ST.appendChild(xhtml);
             body.appendChild(ST);
@@ -1358,11 +1359,11 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     variable.appendChild(initialValue);
                     localVars.appendChild(variable);
                 }
-                /*P_Tm_MsgTmOut*/
+                /*P_Tm_CycleTime*/
                 {
                     QDomElement variable=doc.createElement("variable");
                     attr=doc.createAttribute("name");
-                    attr.setValue("P_Tm_MsgTmOut");
+                    attr.setValue("P_Tm_CycleTime");
                     variable.setAttributeNode(attr);
                     QDomElement type = doc.createElement("type");
                     QDomElement dataVarType = doc.createElement("TIME");
@@ -1370,7 +1371,26 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     QDomElement initialValue = doc.createElement("initialValue");
                     QDomElement simpleValue = doc.createElement("simpleValue");
                     attr=doc.createAttribute("value");
-                    attr.setValue("TIME#"+curMessage->getMsTimeOut()+"ms");
+                    attr.setValue("TIME#"+curMessage->getMsCycleTime()+"ms");
+                    simpleValue.setAttributeNode(attr);
+                    initialValue.appendChild(simpleValue);
+                    variable.appendChild(type);
+                    variable.appendChild(initialValue);
+                    localVars.appendChild(variable);
+                }
+                /*P_Msg_Dlc*/
+                {
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("P_Msg_Dlc");
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement dataVarType = doc.createElement("TIME");
+                    type.appendChild(dataVarType);
+                    QDomElement initialValue = doc.createElement("initialValue");
+                    QDomElement simpleValue = doc.createElement("simpleValue");
+                    attr=doc.createAttribute("value");
+                    attr.setValue(QString::number(curMessage->getDLC()));
                     simpleValue.setAttributeNode(attr);
                     initialValue.appendChild(simpleValue);
                     variable.appendChild(type);
@@ -1401,7 +1421,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     if(i==9){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_0");
+                        attr.setValue("S_IO_BYTE_0");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1411,7 +1431,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     }else if(i==17){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_1");
+                        attr.setValue("S_IO_BYTE_1");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1420,7 +1440,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                         localVars.appendChild(variable);
                         variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_WORD_0");
+                        attr.setValue("S_IO_WORD_0");
                         variable.setAttributeNode(attr);
                         type = doc.createElement("type");
                         QDomElement WORD = doc.createElement("WORD");
@@ -1431,7 +1451,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     else if(i==25){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_2");
+                        attr.setValue("S_IO_BYTE_2");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1442,7 +1462,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     else if(i==33){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_3");
+                        attr.setValue("S_IO_BYTE_3");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1451,7 +1471,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                         localVars.appendChild(variable);
                         variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_WORD_1");
+                        attr.setValue("S_IO_WORD_1");
                         variable.setAttributeNode(attr);
                         type = doc.createElement("type");
                         QDomElement WORD = doc.createElement("WORD");
@@ -1460,7 +1480,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                         localVars.appendChild(variable);
                         variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_DWORD_0");
+                        attr.setValue("S_IO_DWORD_0");
                         variable.setAttributeNode(attr);
                         type = doc.createElement("type");
                         QDomElement DWORD = doc.createElement("DWORD");
@@ -1471,7 +1491,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     else if(i==41){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_4");
+                        attr.setValue("S_IO_BYTE_4");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1482,7 +1502,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     else if(i==49){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_5");
+                        attr.setValue("S_IO_BYTE_5");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1491,7 +1511,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                         localVars.appendChild(variable);
                         variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_WORD_2");
+                        attr.setValue("S_IO_WORD_2");
                         variable.setAttributeNode(attr);
                         type = doc.createElement("type");
                         QDomElement WORD = doc.createElement("WORD");
@@ -1502,7 +1522,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     else if(i==57){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_6");
+                        attr.setValue("S_IO_BYTE_6");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1514,7 +1534,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     {
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BIT_"+QString::number(i));
+                        attr.setValue("S_IO_BIT_"+QString::number(i));
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BOOL = doc.createElement("BOOL");
@@ -1526,7 +1546,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     if(i==63){
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_BYTE_7");
+                        attr.setValue("S_IO_BYTE_7");
                         variable.setAttributeNode(attr);
                         QDomElement type = doc.createElement("type");
                         QDomElement BYTE = doc.createElement("BYTE");
@@ -1535,7 +1555,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                         localVars.appendChild(variable);
                         variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_WORD_3");
+                        attr.setValue("S_IO_WORD_3");
                         variable.setAttributeNode(attr);
                         type = doc.createElement("type");
                         QDomElement WORD = doc.createElement("WORD");
@@ -1544,7 +1564,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                         localVars.appendChild(variable);
                         variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
-                        attr.setValue("S_II_DWORD_1");
+                        attr.setValue("S_IO_DWORD_1");
                         variable.setAttributeNode(attr);
                         type = doc.createElement("type");
                         QDomElement DWORD = doc.createElement("DWORD");
@@ -1577,12 +1597,13 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
             attr.setValue("http://www.w3.org/1999/xhtml");
             xhtml.setAttributeNode(attr);
             QString STcode;
-            text=doc.createTextNode(*this->generateIOST(&STcode));
+            this->generateIOST(&STcode,curMessage);
+            text=doc.createTextNode(STcode);
             xhtml.appendChild(text);
             ST.appendChild(xhtml);
             body.appendChild(ST);
             pou.appendChild(body);
-/**
+            /**
  *
  *
  *
@@ -1620,19 +1641,194 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
 
 }
 
-QString *DBCHandler::generateIOST(QString *const ST)
+void DBCHandler::generateIOST(QString *const ST,dataContainer *const curMessage)
 {
-    ST->append("");
+    ST->append(    "_FB_CanTx_Message_Unpack(\n"
+                   "C_Enable:= C_Init_Can,\n"
+                   "Obj_CAN:= Ptr_Obj_Can,\n"
+                   "X_MsgID:= P_ID_Can,\n"
+                   "Tm_CycleTime:= P_Tm_MsgCyc,\n"
+                   "Msg_Dlc:=P_Msg_Dlc,\n"
+                   "S_Extended:= P_Msg_Extd,\n"
+                   "S_Bit_0:=	S_IO_BIT_0	,\n"
+                   "S_Bit_1:=	S_IO_BIT_1	,\n"
+                   "S_Bit_2:=	S_IO_BIT_2	,\n"
+                   "S_Bit_3:=	S_IO_BIT_3	,\n"
+                   "S_Bit_4:=	S_IO_BIT_4	,\n"
+                   "S_Bit_5:=	S_IO_BIT_5	,\n"
+                   "S_Bit_6:=	S_IO_BIT_6	,\n"
+                   "S_Bit_7:=	S_IO_BIT_7	,\n"
+                   "X_Byte_0:= 	X_IO_BYTE_0	,\n"
+                   "S_Bit_8:= 	S_IO_BIT_8	,\n"
+                   "S_Bit_9:= 	S_IO_BIT_9	,\n"
+                   "S_Bit_10:= 	S_IO_BIT_10	,\n"
+                   "S_Bit_11:= 	S_IO_BIT_11	,\n"
+                   "S_Bit_12:= 	S_IO_BIT_12	,\n"
+                   "S_Bit_13:= 	S_IO_BIT_13	,\n"
+                   "S_Bit_14:= 	S_IO_BIT_14	,\n"
+                   "S_Bit_15:= 	S_IO_BIT_15	,\n"
+                   "X_Byte_1:= 	X_IO_BYTE_1	,\n"
+                   "X_Word_0:= 	X_IO_WORD_0	,\n"
+                   "S_Bit_16:= 	S_IO_BIT_16	,\n"
+                   "S_Bit_17:= 	S_IO_BIT_17	,\n"
+                   "S_Bit_18:= 	S_IO_BIT_18	,\n"
+                   "S_Bit_19:= 	S_IO_BIT_19	,\n"
+                   "S_Bit_20:= 	S_IO_BIT_20	,\n"
+                   "S_Bit_21:= 	S_IO_BIT_21	,\n"
+                   "S_Bit_22:= 	S_IO_BIT_22	,\n"
+                   "S_Bit_23:= 	S_IO_BIT_23	,\n"
+                   "X_Byte_2:= 	X_IO_BYTE_2	,\n"
+                   "S_Bit_24:= 	S_IO_BIT_24	,\n"
+                   "S_Bit_25:= 	S_IO_BIT_25	,\n"
+                   "S_Bit_26:= 	S_IO_BIT_26	,\n"
+                   "S_Bit_27:= 	S_IO_BIT_27	,\n"
+                   "S_Bit_28:= 	S_IO_BIT_28	,\n"
+                   "S_Bit_29:= 	S_IO_BIT_29	,\n"
+                   "S_Bit_30:= 	S_IO_BIT_30	,\n"
+                   "S_Bit_31:= 	S_IO_BIT_31	,\n"
+                   "X_Byte_3:= 	X_IO_BYTE_3	,\n"
+                   "X_Word_1:= 	X_IO_WORD_1	,\n"
+                   "X_DWord_0:= X_IO_DWORD_0,\n"
+                   "S_Bit_32:= 	S_IO_BIT_32	,\n"
+                   "S_Bit_33:= 	S_IO_BIT_33	,\n"
+                   "S_Bit_34:= 	S_IO_BIT_34	,\n"
+                   "S_Bit_35:= 	S_IO_BIT_35	,\n"
+                   "S_Bit_36:= 	S_IO_BIT_36	,\n"
+                   "S_Bit_37:= 	S_IO_BIT_37	,\n"
+                   "S_Bit_38:= 	S_IO_BIT_38	,\n"
+                   "S_Bit_39:= 	S_IO_BIT_39	,\n"
+                   "X_Byte_4:= 	X_IO_BYTE_4	,\n"
+                   "S_Bit_40:= 	S_IO_BIT_40	,\n"
+                   "S_Bit_41:= 	S_IO_BIT_41	,\n"
+                   "S_Bit_42:= 	S_IO_BIT_42	,\n"
+                   "S_Bit_43:= 	S_IO_BIT_43	,\n"
+                   "S_Bit_44:= 	S_IO_BIT_44	,\n"
+                   "S_Bit_45:= 	S_IO_BIT_45	,\n"
+                   "S_Bit_46:= 	S_IO_BIT_46	,\n"
+                   "S_Bit_47:= 	S_IO_BIT_47	,\n"
+                   "X_Byte_5:= 	X_IO_BYTE_5	,\n"
+                   "X_Word_2:= 	X_IO_WORD_2	,\n"
+                   "S_Bit_48:= 	S_IO_BIT_48	,\n"
+                   "S_Bit_49:= 	S_IO_BIT_49	,\n"
+                   "S_Bit_50:= 	S_IO_BIT_50	,\n"
+                   "S_Bit_51:= 	S_IO_BIT_51	,\n"
+                   "S_Bit_52:= 	S_IO_BIT_52	,\n"
+                   "S_Bit_53:= 	S_IO_BIT_53	,\n"
+                   "S_Bit_54:= 	S_IO_BIT_54	,\n"
+                   "S_Bit_55:= 	S_IO_BIT_55	,\n"
+                   "X_Byte_6:= 	X_IO_BYTE_6	,\n"
+                   "S_Bit_56:= 	S_IO_BIT_56	,\n"
+                   "S_Bit_57:= 	S_IO_BIT_57	,\n"
+                   "S_Bit_58:= 	S_IO_BIT_58	,\n"
+                   "S_Bit_59:= 	S_IO_BIT_59	,\n"
+                   "S_Bit_60:= 	S_IO_BIT_60	,\n"
+                   "S_Bit_61:= 	S_IO_BIT_61	,\n"
+                   "S_Bit_62:= 	S_IO_BIT_62	,\n"
+                   "S_Bit_63:= 	S_IO_BIT_63	,\n"
+                   "X_Byte_7:= 	X_IO_BYTE_7	,\n"
+                   "X_Word_3:= 	X_IO_WORD_3	,\n"
+                   "X_DWord_1:= X_IO_DWORD_1,\n"
+                   "S_Sent_Ok=&gt; S_Msg_Snt_Ok);\n" );
 }
-QString DBCHandler::convTypeApptoCom(const QString &signalName, const QString &starbit, const QString &converType)
+QString DBCHandler::convTypeApptoCom (QString signalName, QString starbit,  QString converType)
 {
 
 }
-QString *DBCHandler::generateIIST(QString *const ST)
+void DBCHandler::generateIIST(QString *const ST,dataContainer *const curMessage)
 {
+    ST->append( "_FB_CanRx_Message_Unpack_0(\n"
+                "C_Enable:= C_Init_Can,\n"
+                "Obj_CAN:= Ptr_Obj_Can ,\n"
+                "X_MsgID:= P_ID_Can,\n"
+                "Tm_MsgTmOut:= P_Tm_MsgTmOut,\n"
+                "S_Extended:= P_Msg_Extd,\n"
+                "S_ER_TmOut=&gt; S_Msg_TmOut,\n"
+                "S_Bit_0=&gt;  S_II_BIT_0	 ,\n"
+                "S_Bit_1=&gt;  S_II_BIT_1	 ,\n"
+                "S_Bit_2=&gt;  S_II_BIT_2	 ,\n"
+                "S_Bit_3=&gt;  S_II_BIT_3	 ,\n"
+                "S_Bit_4=&gt;  S_II_BIT_4	 ,\n"
+                "S_Bit_5=&gt;  S_II_BIT_5	 ,\n"
+                "S_Bit_6=&gt;  S_II_BIT_6	 ,\n"
+                "S_Bit_7=&gt;  S_II_BIT_7	 ,\n"
+                "X_Byte_0=&gt; X_II_BYTE_0	 ,\n"
+                "S_Bit_8=&gt;  S_II_BIT_8	 ,\n"
+                "S_Bit_9=&gt;  S_II_BIT_9	 ,\n"
+                "S_Bit_10=&gt; S_II_BIT_10	 ,\n"
+                "S_Bit_11=&gt; S_II_BIT_11	 ,\n"
+                "S_Bit_12=&gt; S_II_BIT_12	 ,\n"
+                "S_Bit_13=&gt; S_II_BIT_13	 ,\n"
+                "S_Bit_14=&gt; S_II_BIT_14	 ,\n"
+                "S_Bit_15=&gt; S_II_BIT_15	 ,\n"
+                "X_Byte_1=&gt; X_II_BYTE_1	 ,\n"
+                "X_Word_0=&gt; X_II_WORD_0	 ,\n"
+                "S_Bit_16=&gt; S_II_BIT_16	 ,\n"
+                "S_Bit_17=&gt; S_II_BIT_17	 ,\n"
+                "S_Bit_18=&gt; S_II_BIT_18	 ,\n"
+                "S_Bit_19=&gt; S_II_BIT_19	 ,\n"
+                "S_Bit_20=&gt; S_II_BIT_20	 ,\n"
+                "S_Bit_21=&gt; S_II_BIT_21	 ,\n"
+                "S_Bit_22=&gt; S_II_BIT_22	 ,\n"
+                "S_Bit_23=&gt; S_II_BIT_23	 ,\n"
+                "X_Byte_2=&gt; X_II_BYTE_2	 ,\n"
+                "S_Bit_24=&gt; S_II_BIT_24	 ,\n"
+                "S_Bit_25=&gt; S_II_BIT_25	 ,\n"
+                "S_Bit_26=&gt; S_II_BIT_26	 ,\n"
+                "S_Bit_27=&gt; S_II_BIT_27	 ,\n"
+                "S_Bit_28=&gt; S_II_BIT_28	 ,\n"
+                "S_Bit_29=&gt; S_II_BIT_29	 ,\n"
+                "S_Bit_30=&gt; S_II_BIT_30	 ,\n"
+                "S_Bit_31=&gt; S_II_BIT_31	 ,\n"
+                "X_Byte_3=&gt; X_II_BYTE_3	 ,\n"
+                "X_Word_1=&gt; X_II_WORD_1	 ,\n"
+                "X_DWord_0=&gt; X_II_DWORD_0 ,\n"
+                "S_Bit_32=&gt; S_II_BIT_32	 ,\n"
+                "S_Bit_33=&gt; S_II_BIT_33	 ,\n"
+                "S_Bit_34=&gt; S_II_BIT_34	 ,\n"
+                "S_Bit_35=&gt; S_II_BIT_35	 ,\n"
+                "S_Bit_36=&gt; S_II_BIT_36	 ,\n"
+                "S_Bit_37=&gt; S_II_BIT_37	 ,\n"
+                "S_Bit_38=&gt; S_II_BIT_38	 ,\n"
+                "S_Bit_39=&gt; S_II_BIT_39	 ,\n"
+                "X_Byte_4=&gt; X_II_BYTE_4	 ,\n"
+                "S_Bit_40=&gt; S_II_BIT_40	 ,\n"
+                "S_Bit_41=&gt; S_II_BIT_41	 ,\n"
+                "S_Bit_42=&gt; S_II_BIT_42	 ,\n"
+                "S_Bit_43=&gt; S_II_BIT_43	 ,\n"
+                "S_Bit_44=&gt; S_II_BIT_44	 ,\n"
+                "S_Bit_45=&gt; S_II_BIT_45	 ,\n"
+                "S_Bit_46=&gt; S_II_BIT_46	 ,\n"
+                "S_Bit_47=&gt; S_II_BIT_47	 ,\n"
+                "X_Byte_5=&gt; X_II_BYTE_5	 ,\n"
+                "X_Word_2=&gt; X_II_WORD_2	 ,\n"
+                "S_Bit_48=&gt; S_II_BIT_48	 ,\n"
+                "S_Bit_49=&gt; S_II_BIT_49	 ,\n"
+                "S_Bit_50=&gt; S_II_BIT_50	 ,\n"
+                "S_Bit_51=&gt; S_II_BIT_51	 ,\n"
+                "S_Bit_52=&gt; S_II_BIT_52	 ,\n"
+                "S_Bit_53=&gt; S_II_BIT_53	 ,\n"
+                "S_Bit_54=&gt; S_II_BIT_54	 ,\n"
+                "S_Bit_55=&gt; S_II_BIT_55	 ,\n"
+                "X_Byte_6=&gt; X_II_BYTE_6	 ,\n"
+                "S_Bit_56=&gt; S_II_BIT_56	 ,\n"
+                "S_Bit_57=&gt; S_II_BIT_57	 ,\n"
+                "S_Bit_58=&gt; S_II_BIT_58	 ,\n"
+                "S_Bit_59=&gt; S_II_BIT_59	 ,\n"
+                "S_Bit_60=&gt; S_II_BIT_60	 ,\n"
+                "S_Bit_61=&gt; S_II_BIT_61	 ,\n"
+                "S_Bit_62=&gt; S_II_BIT_62	 ,\n"
+                "S_Bit_63=&gt; S_II_BIT_63	 ,\n"
+                "X_Byte_7=&gt; X_II_BYTE_7	 ,\n"
+                "X_Word_3=&gt; X_II_WORD_3	 ,\n"
+                "X_DWord_1=&gt;X_II_DWORD_1   );\n");
 
+    /*for( const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+        if(curSignal->length == 1){
+            ST->append(convTypeComtoApp(curSignal->name,QString::number(curSignal->startBit),curSignal->convMethod));
+        }
+    }*/
 }
-QString DBCHandler::convTypeComtoApp(const QString &signalName, const QString &starbit, const QString &converType)
+QString DBCHandler::convTypeComtoApp(QString signalName, QString starbit,  QString converType)
 {
 
 }

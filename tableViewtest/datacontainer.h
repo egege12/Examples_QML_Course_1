@@ -75,6 +75,7 @@ struct dataContainer::signal{
     QString comment;
     QString appDataType;
     QString comDataType;
+    QString convMethod;
     bool isJ1939;
 
 };
