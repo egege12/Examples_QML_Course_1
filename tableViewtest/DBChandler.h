@@ -20,17 +20,19 @@ class DBCHandler : public QObject
     Q_OBJECT
 
 public:
+
     static unsigned int selectedMessageCounter;
     explicit DBCHandler(QObject *parent = nullptr);
-
-
-
+/*PROPERTIES STARTS*/
     Q_PROPERTY(QString errCode READ errCode WRITE setErrCode NOTIFY errCodeChanged)
-
+/*PROPERTIES ENDS*/
+/*ERROR CODE- It stored as texts but will be converted into database for language*/
     QString errCode() const;
     void setErrCode(const QString &newErrCode);
+/*END*/
+/*Signal list getter - currently not used anywhere*/
     const dataContainer *getMessage(QString messageID);
-
+/*END*/
 public slots:
 
     void update();
@@ -94,6 +96,7 @@ private:
     double parseMaxValue(QString  splitedPart);
     double parseMinValue(QString  splitedPart);
     QString parseComment(QString splitedPart);
+    QString getBetween(QString first, QString second,QString fullText);
     //***********************************
     // Reading Process from dbc file end
     //Generate XML file start
@@ -102,9 +105,17 @@ private:
     bool createXml_STG1(QFile *xmlFile);
     void generateVariables(QDomElement*strucT,QDomDocument &doc);
     void generateIIPous(QDomElement*pous,QDomDocument &doc);
-    void generateIOPous(QDomElement*pous,QDomDocument &doc);
+    void extracted(QDomDocument &doc, QDomText &text,
+                   dataContainer *&curMessage);
+    void generateIOPous(QDomElement *pous, QDomDocument &doc);
     //***********************************
     //Generate XML file end
+    //***********************************
+    //Conversion Methods
+    QString *generateIIST(QString *const ST);
+    QString *generateIOST(QString *const ST;
+    QString convTypeComtoApp(QString const& signalName,QString const& starbit,QString const& converType);
+    QString convTypeApptoCom(QString const& signalName,QString const& starbit,QString const& converType);
 
 };
 

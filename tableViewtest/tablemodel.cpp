@@ -51,7 +51,7 @@ QVariant tablemodel::data(const QModelIndex &index, int role) const
     case MessageName:
         return table.at(index.row()).at(0);
     case Selected:
-        return (table.at(index.row()).at(4)== "X");
+        return (table.at(index.row()).at(5)== "X");
     case ActiveSortHeader:
         return index.column() ==tablemodel::lastColumnID;
     case SortHeader:

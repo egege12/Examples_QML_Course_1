@@ -3,12 +3,14 @@
 
 unsigned int dataContainer::messageCounter = 0;
 unsigned int dataContainer::signalCounter = 0;
+QList<QString> dataContainer::warningMessages ={};
 dataContainer::dataContainer(QObject *parent)
 {
     ++dataContainer::messageCounter;
     this->isInserted=false;
     this->isSelected = false;
     this->msTimeout ="2500";
+    this->msCycleTime ="100";
     this->comment="No Comment";
 }
 
@@ -42,6 +44,11 @@ QString dataContainer::getMsTimeOut()
     return this->msTimeout;
 }
 
+QString dataContainer::getMsCycleTime()
+{
+    return this->msCycleTime;
+}
+
 QString dataContainer::getComment()
 {
     return this->comment;
@@ -62,6 +69,11 @@ bool dataContainer::getIfExtended()
 unsigned short dataContainer::getDLC()
 {
     return this->dlc;
+}
+
+const QList<QString> *dataContainer::getWarningList()
+{
+    return &dataContainer::warningMessages;
 }
 
 void dataContainer::setName(QString Name)
@@ -99,9 +111,19 @@ void dataContainer::setMsTimeOut(QString msTimeout)
     this->msTimeout = msTimeout;
 }
 
+void dataContainer::setMsCycleTime(QString msCycleTime)
+{
+    this->msCycleTime = msCycleTime;
+}
+
 void dataContainer::setComment(QString comment)
 {
     this->comment = comment;
+}
+
+void dataContainer::setWarning(const QString &warningCode)
+{
+    dataContainer::warningMessages.append(warningCode);
 }
 
 void dataContainer::dataTypeAss(signal *signalPtr)
@@ -110,11 +132,14 @@ void dataContainer::dataTypeAss(signal *signalPtr)
         signalPtr->appDataType = "BOOL";
         signalPtr->comDataType = "BOOL";
     }else if (signalPtr->length == 2){
-        signalPtr->comDataType = "BOOL";
+        signalPtr->comDataType = "2XBOOL";
         if((signalPtr->isJ1939) || signalPtr->name.contains("C_") || signalPtr->name.contains("S_")){
             signalPtr->appDataType = "BOOL";
-        }else{
+        }else if (signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "BYTE";
+        }else{
+            signalPtr->appDataType="BYTE";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde C_ S_ Z_ işareti bulunmuyor");
         }
     }else if (signalPtr->length < 8){
         signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
@@ -124,7 +149,11 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "USINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "BYTE";
+        }else{
+            signalPtr->appDataType="BYTE";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
+
     }else if (signalPtr->length == 8){
         signalPtr->comDataType = "BYTE";
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
@@ -133,7 +162,11 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "USINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "BYTE";
+        }else{
+            signalPtr->appDataType="BYTE";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
+
     }else if (signalPtr->length <  16){
         signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
@@ -142,7 +175,11 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "UINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "WORD";
+        }else{
+            signalPtr->appDataType="WORD";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
+
     }else if (signalPtr->length == 16){
         signalPtr->comDataType = "WORD";
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
@@ -151,6 +188,9 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "UINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "WORD";
+        }else{
+            signalPtr->appDataType="WORD";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
     }else if (signalPtr->length < 32){
         signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
@@ -160,6 +200,9 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "UDINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "DWORD";
+        }else{
+            signalPtr->appDataType="DWORD";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
     }else if (signalPtr->length == 32){
         signalPtr->comDataType = "DWORD";
@@ -169,6 +212,9 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "UDINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "DWORD";
+        }else{
+            signalPtr->appDataType="DWORD";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
     }else if (signalPtr->length < 64){
         signalPtr->comDataType = QString::number(signalPtr->length) + QString("XBOOL");
@@ -178,6 +224,9 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "ULINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "LWORD";
+        }else{
+            signalPtr->appDataType="LWORD";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
     }else if (signalPtr->length == 64){
         signalPtr->comDataType = "LWORD";
@@ -187,10 +236,9 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->appDataType = "ULINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "LWORD";
-        }
-        else{
-            signalPtr->appDataType = "****(*CHECK IDENTIFIER OR DATA LENGTH*)";
-            signalPtr->comDataType = " ";
+        }else{
+            signalPtr->appDataType = "LWORD";
+            this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
         }
     }
 }

@@ -34,15 +34,15 @@ Rectangle {
                 id:messageRectangle
                 Layout.preferredHeight: messageSelPage.height*0.7
                 Layout.preferredWidth: messageSelPage.width/2
-                Layout.alignment: Qt.AlignLeft
                 anchors.left:parent.left
                 anchors.leftMargin: 20
                 onWidthChanged: {
-                    tableViewMessages.columnWidths[0] = messageRectangle.width*.3
-                    tableViewMessages.columnWidths[1] = messageRectangle.width*.2
-                    tableViewMessages.columnWidths[2] = messageRectangle.width*.2
-                    tableViewMessages.columnWidths[3] = messageRectangle.width*.2
-                    tableViewMessages.columnWidths[4] = messageRectangle.width*.2
+                    tableViewMessages.columnWidths[0] = Math.max(150,messageRectangle.width*.3)
+                    tableViewMessages.columnWidths[1] = (messageRectangle.width - tableViewMessages.columnWidths[0])*.20
+                    tableViewMessages.columnWidths[2] = (messageRectangle.width - tableViewMessages.columnWidths[0])*.10
+                    tableViewMessages.columnWidths[3] = (messageRectangle.width - tableViewMessages.columnWidths[0])*.25
+                    tableViewMessages.columnWidths[4] = (messageRectangle.width - tableViewMessages.columnWidths[0])*.25
+                    tableViewMessages.columnWidths[5] = (messageRectangle.width - tableViewMessages.columnWidths[0])*.20
                     tableViewMessages.forceLayout();
                 }
 
@@ -56,13 +56,19 @@ Rectangle {
                     model: TableModel{
                         id: tableMessages}
 
-                    property bool enableScrollbar: true
+                    property bool enableVScrollbar: true
                     ScrollBar.vertical: ScrollBar{
-                        visible:  tableViewMessages.enableScrollbar  // not sure if you need to use enable or not
+                        policy: ((tableViewMessages.height - tableViewMessages.contentHeight) < -3) ?
+                                 ScrollBar.AlwaysOff : ScrollBar.AsNeeded
+                        visible: ((tableViewMessages.height - tableViewMessages.contentHeight) < -3) ?
+                                     true : false
                     }
                     property bool enableHScrollbar: true
                     ScrollBar.horizontal: ScrollBar{
-                        visible:  tableViewMessages.enableHScrollbar  // not sure if you need to use enable or not
+                        policy: (tableViewMessages.width - tableViewMessages.contentWidth < -3) ?
+                                 ScrollBar.AlwaysOff : ScrollBar.AsNeeded
+                        visible: (tableViewMessages.width - tableViewMessages.contentWidth < -3) ?
+                                     true : false
                     }
                     property var columnWidths: [220, 100, 80, 80, 100]
                     columnWidthProvider: function (column) { return columnWidths[column] }
@@ -127,7 +133,6 @@ Rectangle {
                 id:signalRectangle
                 Layout.preferredHeight: messageSelPage.height*0.7
                 Layout.preferredWidth: messageSelPage.width/2
-                Layout.alignment: Qt.AlignRight
                 anchors.right:parent.right
                 anchors.rightMargin: 20
                 anchors.left:messageRectangle.right
@@ -135,16 +140,16 @@ Rectangle {
 
 
                 onWidthChanged: {
-                    tableViewSignals.columnWidths[0] = signalRectangle.width*.3
-                    tableViewSignals.columnWidths[1] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[2] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[3] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[4] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[5] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[6] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[7] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[8] = signalRectangle.width*.2
-                    tableViewSignals.columnWidths[9] = signalRectangle.width*.2
+                    tableViewSignals.columnWidths[0] = Math.max(100,signalRectangle.width*.2)
+                    tableViewSignals.columnWidths[1] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.1)
+                    tableViewSignals.columnWidths[2] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.1)
+                    tableViewSignals.columnWidths[3] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.1)
+                    tableViewSignals.columnWidths[4] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.1)
+                    tableViewSignals.columnWidths[5] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.1)
+                    tableViewSignals.columnWidths[6] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.1)
+                    tableViewSignals.columnWidths[7] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.133)
+                    tableViewSignals.columnWidths[8] = Math.max(70,(signalRectangle.width-tableViewSignals.columnWidths[0])*.133)
+                    tableViewSignals.columnWidths[9] = Math.max(200,(signalRectangle.width-tableViewSignals.columnWidths[0])*.133)
                     tableViewSignals.forceLayout();
                 }
 
@@ -167,74 +172,67 @@ Rectangle {
 
                     property bool enableVScrollbar: true
                     ScrollBar.vertical: ScrollBar{
-                        visible:  tableViewSignals.enableVScrollbar  // not sure if you need to use enable or not
+                        policy: ((tableViewSignals.height - tableViewSignals.contentHeight) < -3) ?
+                                 ScrollBar.AlwaysOff : ScrollBar.AsNeeded
+                        visible: ((tableViewSignals.height - tableViewSignals.contentHeight) < -3) ?
+                                     true : false
                     }
                     property bool enableHScrollbar: true
                     ScrollBar.horizontal: ScrollBar{
-                        visible:  tableViewSignals.enableHScrollbar  // not sure if you need to use enable or not
+                        policy: (tableViewSignals.width - tableViewSignals.contentWidth < -3) ?
+                                 ScrollBar.AlwaysOff : ScrollBar.AsNeeded
+                        visible: (tableViewSignals.width - tableViewSignals.contentWidth < -3) ?
+                                     true : false
                     }
                     property var columnWidths: [220, 100, 80, 80,80,80,80,100,100,100]
-                    columnWidthProvider: function (column) { return columnWidths[column] }
-                    Timer {
-                        running: true
-                        interval: 1000
-                        onTriggered: {
-                            tableViewSignals.columnWidths[0] = signalRectangle.width*.3
-                            tableViewSignals.columnWidths[1] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[2] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[3] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[4] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[5] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[6] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[7] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[8] = signalRectangle.width*.2
-                            tableViewSignals.columnWidths[9] = signalRectangle.width*.2
-                            tableViewSignals.forceLayout();
-                        }
+                    columnWidthProvider: function (column) {
+                        return  columnWidths[column]
                     }
 
-                    delegate: Rectangle {
 
-                        implicitHeight: textSignal.implicitHeight + 2
-                        implicitWidth: textSignal.implicitWidth +2
-                        color: (heading===true)?"#2d2d2d": (signalRectangle.selectedSignalName === messagename )? "#EDEDE0":"#EDEDF0"
+                        delegate: Rectangle {
 
-                        Text {
-                            id:textSignal
-                            text: tabledata
+                            implicitHeight: textSignal.implicitHeight+2
+                            implicitWidth: textSignal.implicitWidth+2
+                            color: (heading===true)?"#2d2d2d": (signalRectangle.selectedSignalName === messagename )? "#EDEDE0":"#EDEDF0"
 
-                            padding: 1
-                            font.pointSize: 10
-                            elide: Text.ElideRight
-                            font.preferShaping: false
-                            color: "#838383"
-                            Layout.alignment: Qt.AlignLeft
+                            Text {
+                                id:textSignal
+                                text: tabledata
 
-                        }
+                                padding: 1
+                                font.pointSize: 10
+                                elide: Text.ElideRight
+                                font.preferShaping: false
+                                color: "#838383"
+                                Layout.alignment: Qt.AlignLeft
 
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                if(heading===true){
-                                    tableSignals.sortColumn();
-                                }else{
-                                    signalRectangle.selectedSignalName = messagename
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    if(heading===true){
+                                        tableSignals.sortColumn();
+                                    }else{
+                                        signalRectangle.selectedSignalName = messagename
+                                    }
                                 }
                             }
-                        }
-                        Image{
-                            visible: (heading===true)? true : false
-                            source: (activesortheader===true)? ((sortheader===true)? "qrc:/img/img/sortDnEnabled.png" :"qrc:/img/img/sortUpEnabled.png"):"qrc:/img/img/sortNotEnable.png"
-                            height:parent.height*0.8
-                            anchors.right:parent.right
-                            anchors.rightMargin: width*0.05
-                            anchors.top:parent.top
-                            anchors.topMargin: 2
-                            fillMode:Image.PreserveAspectFit
-                            antialiasing: true
+                            Image{
+                                visible: (heading===true)? true : false
+                                source: (activesortheader===true)? ((sortheader===true)? "qrc:/img/img/sortDnEnabled.png" :"qrc:/img/img/sortUpEnabled.png"):"qrc:/img/img/sortNotEnable.png"
+                                height:parent.height*0.8
+                                anchors.right:parent.right
+                                anchors.rightMargin: width*0.05
+                                anchors.top:parent.top
+                                anchors.topMargin: 2
+                                fillMode:Image.PreserveAspectFit
+                                antialiasing: true
+                            }
+
                         }
 
-                    }
 
 
                 }
