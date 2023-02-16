@@ -1745,7 +1745,7 @@ QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short starbit
 }
 void DBCHandler::generateIIST(QString *const ST,dataContainer *const curMessage)
 {
-    ST->append( "_FB_CanRx_Message_Unpack_0(\n"
+    ST->append( "\n_FB_CanRx_Message_Unpack_0(\n"
                 "C_Enable:= C_Init_Can,\n"
                 "Obj_CAN:= Ptr_Obj_Can ,\n"
                 "X_MsgID:= P_ID_Can,\n"
@@ -1837,7 +1837,7 @@ void DBCHandler::generateIIST(QString *const ST,dataContainer *const curMessage)
 }
 QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit,unsigned short length,  QString converType)
 {
-    QString ST="\n\n\n(*THIS AREA RESERVED FOR "+signalName+"*)\n\n\n";
+    QString ST="\n\n\n(*Conversion starts : "+signalName+"*)\n\n\n";
     if(converType=="BOOL:BOOL"){
         ST.append("\n"+this->dutHeader+"."+signalName+".v               := NOT S_Msg_TmOut OR FrcHi_"+signalName+"OR FrcLo_"+signalName+" ;"
                   "\n"+this->dutHeader+"."+signalName+".x                := "+this->dutHeader+"."+signalName+".v AND (S_II_BIT_"+QString::number(startbit)+" OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+" ;");
@@ -1846,33 +1846,33 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
     }else if(converType=="2BOOL:BOOL"){
         ST.append("\n"+this->dutHeader+"."+signalName+".v               := ((NOT S_Msg_TmOut AND NOT S_II_BIT_"+QString::number(startbit+1)+") OR FrcHi_"+signalName+" OR FrcLo_"+signalName+") ;"
                    "\n"+this->dutHeader+"."+signalName+".x               := "+this->dutHeader+"."+signalName+".v AND (S_II_BIT_"+QString::number(startbit+1)+" OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+";");
-    }/*else if(converType=="BYTE:REAL"){
+    }else if(converType=="BYTE:REAL"){
 
-        }else if(converType=="BYTE:USINT"){
+    }else if(converType=="BYTE:USINT"){
 
-        }else if(converType=="BYTE:BYTE"){
+    }else if(converType=="BYTE:BYTE"){
 
-        }else if(converType=="WORD:REAL"){
+    }else if(converType=="WORD:REAL"){
 
-        }else if(converType=="WORD:UINT"){
+    }else if(converType=="WORD:UINT"){
 
-        }else if(converType=="WORD:WORD"){
+    }else if(converType=="WORD:WORD"){
 
-        }else if(converType=="DWORD:REAL"){
+    }else if(converType=="DWORD:REAL"){
 
-        }else if(converType=="DWORD:UDINT"){
+    }else if(converType=="DWORD:UDINT"){
 
-        }else if(converType=="DWORD:DWORD"){
+    }else if(converType=="DWORD:DWORD"){
 
-        }else if(converType=="2DWORD:LREAL"){
+    }else if(converType=="2DWORD:LREAL"){
 
-        }else if(converType=="2DWORD:ULINT"){
+    }else if(converType=="2DWORD:ULINT"){
 
-        }else if(converType=="2DWORD:LWORD"){
+    }else if(converType=="2DWORD:LWORD"){
 
-        }*/else{
+    }else{
         bool flagPack = false;
-        if((length>7)){
+        if((length>8)){
             if(length<17){
                 ST.append("\n_FB_PACK_BYTE_TO_WORD_0();");
             }else if(length <33){
@@ -1884,17 +1884,11 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
         }
         unsigned packID=0;
         unsigned packByteID=0;
-        for(unsigned i =0; i<=length;i++){
+        for(unsigned i =0; i<length;i++){
 
 
 
-            if(flagPack){
-                if((i%8 == 0) && (i>0)){
-                    ST.append(" ,X_BYTE_0=>"+ ((length<8) ? ("Raw_"+signalName) : ((length<16) ? "_FB_PACK_BYTE_TO_WORD_" :"_FB_PACK_BYTE_TO_DWORD_"+QString::number(packID)+".X_BYTE_"+QString::number(packByteID)))+");");
-                    flagPack=false;
-                    packByteID++;
-                }
-            }
+
             if((i%32 == 0) && (i>0) && length>16){
                 packID++;
                 packByteID=0;
@@ -1916,9 +1910,16 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
                     }
                 }
             }
+            if(flagPack){
+                if((i%8 == 7) && (i>0)){
+                    ST.append(" ,X_BYTE_0=>"+ ((length<9) ? ("Raw_"+signalName) : ((length<17) ? ("_FB_PACK_BYTE_TO_WORD_") :("_FB_PACK_BYTE_TO_DWORD_")+QString::number(packID)+".X_BYTE_"+QString::number(packByteID)))+");");
+                    flagPack=false;
+                    packByteID++;
+                }
+            }
 
         }
-        if((length>7)){
+        if((length>8)){
             if(length<17){
                 ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_WORD_0.X_WORD_0;");
             }else if(length <33){
@@ -1928,6 +1929,7 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
             }
         }
     }
+    // TYPE CONVERTION AND E  NA CONTROL STARTS
     if(length==1){
         ST.append("\n"+this->dutHeader+"."+signalName+".e				:= FALSE;");
         ST.append("\n"+this->dutHeader+"."+signalName+".na				:= FALSE;");
@@ -1990,8 +1992,8 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
         ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) AND (Raw_"+signalName+" < 16#FF000000000000000000000000000000) ;");
         ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) ;");
 
-    }
-
+    }// TYPE CONVERTION AND E  NA CONTROL ENDS
+// ADD COMMON PART EXCEPT BOOL AND 2XBOOLS
     if((length!= 1) && (!(length==2 && (converType !="toByte")))){
         ST.append("\n"+this->dutHeader+"."+signalName+".RangeExcd 		:= NOT ((Cont_"+signalName+" >= "+this->dutHeader+"."+signalName+".Param_Min) AND ("+this->dutHeader+"."+signalName+".Param_Min <= "+this->dutHeader+"."+signalName+".Param_Max));"
         "\n"+this->dutHeader+"."+signalName+".v				:= NOT( S_Msg_TmOut OR "+this->dutHeader+"."+signalName+".RangeExcd OR (( "+this->dutHeader+"."+signalName+".e OR "+this->dutHeader+"."+signalName+".na) AND IIDUT_NAME>."+signalName+".J1939)) OR FrcEn_"+signalName+";"
@@ -2002,8 +2004,9 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
         "\n	"+this->dutHeader+"."+signalName+".x 		   	:= Cont_"+signalName+";"
         "\nELSE"
         "\n	"+this->dutHeader+"."+signalName+".x 		   	:= <IODUT_NAME>."+signalName+".Param_Def;"
-        "\nEND_IF;");
+        "\nEND_IF;\n");
     }
+    ST.append("\n\n\n(*Conversion ends : "+signalName+"*)\n\n\n");
     return ST;
 }
 

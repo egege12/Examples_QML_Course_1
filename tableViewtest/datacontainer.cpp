@@ -169,16 +169,16 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->comDataType = "BYTE";
             if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
                 signalPtr->appDataType = "REAL";
-                signalPtr->convMethod="BYTE:REAL";
+                signalPtr->convMethod="xtoREAL";
             }else if(signalPtr->name.contains("N_")){
                 signalPtr->appDataType = "USINT";
-                signalPtr->convMethod="BYTE:USINT";
+                signalPtr->convMethod="xtoUSINT";
             }else if(signalPtr->name.contains("Z_")){
                 signalPtr->appDataType = "BYTE";
-                signalPtr->convMethod="BYTE:BYTE";
+                signalPtr->convMethod="xtoBYTE";
             }else{
                 signalPtr->appDataType="BYTE";
-                signalPtr->convMethod="BYTE:BYTE";
+                signalPtr->convMethod="xtoBYTE";
                 this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
             }
         }else{
@@ -244,12 +244,12 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->comDataType = "WORD";
             if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
                 signalPtr->appDataType = "REAL";
-                signalPtr->convMethod="WORD:REAL";
+                signalPtr->convMethod="xtoREAL";
             }else if(signalPtr->name.contains("N_")){
                 signalPtr->appDataType = "UINT";
-                signalPtr->convMethod="WORD:UINT";
+                signalPtr->convMethod="xtoUINT";
             }else if(signalPtr->name.contains("Z_")){
-                signalPtr->convMethod="WORD:WORD";
+                signalPtr->convMethod="xtoWORD";
             }else{
                 signalPtr->appDataType="WORD";
                 signalPtr->convMethod="WORD:WORD";
@@ -319,16 +319,16 @@ void dataContainer::dataTypeAss(signal *signalPtr)
             signalPtr->comDataType = "DWORD";
             if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
                 signalPtr->appDataType = "REAL";
-                signalPtr->convMethod="DWORD:REAL";
+                signalPtr->convMethod="xtoREAL";
             }else if(signalPtr->name.contains("N_")){
                 signalPtr->appDataType = "UDINT";
-                signalPtr->convMethod="DWORD:UDINT";
+                signalPtr->convMethod="xtoUDINT";
             }else if(signalPtr->name.contains("Z_")){
                 signalPtr->appDataType = "DWORD";
-                signalPtr->convMethod="DWORD:DWORD";
+                signalPtr->convMethod="xtoDWORD";
             }else{
                 signalPtr->appDataType="DWORD";
-                signalPtr->convMethod="DWORD:DWORD";
+                signalPtr->convMethod="xtoDWORD";
                 this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");
             }
         }else{
@@ -391,13 +391,13 @@ void dataContainer::dataTypeAss(signal *signalPtr)
         signalPtr->comDataType = "LWORD";
         if(signalPtr->name.contains("X_") || signalPtr->name.contains("W_")){
             signalPtr->appDataType = "LREAL";
-            signalPtr->convMethod="2DWORD:LREAL";
+            signalPtr->convMethod="xtoLREAL";
         }else if(signalPtr->name.contains("N_")){
             signalPtr->appDataType = "ULINT";
-            signalPtr->convMethod="2DWORD:ULINT";
+            signalPtr->convMethod="xtoULINT";
         }else if(signalPtr->name.contains("Z_")){
             signalPtr->appDataType = "LWORD";
-            signalPtr->convMethod="2DWORD:LWORD";
+            signalPtr->convMethod="xtoLWORD";
         }else{
             signalPtr->appDataType = "LWORD";
             this->setWarning(this->messageID+" mesajında yer alan "+signalPtr->name+" sinyali isimlendirmesinde X_ W_ N_ Z_ işareti bulunmuyor");

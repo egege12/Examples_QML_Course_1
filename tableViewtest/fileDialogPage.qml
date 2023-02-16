@@ -205,8 +205,8 @@ Item {
                 source: "qrc:/img/img/imgLogo.png"
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.topMargin: 40
-                width: parent.width*.95
+                anchors.topMargin: 70
+                width: parent.width*.55
                 height: 228
                 fillMode:Image.PreserveAspectFit
             }
