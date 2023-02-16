@@ -1,7 +1,7 @@
 #include "DBChandler.h"
 #include "datacontainer.h"
 #include "qforeach.h"
-
+#include <QtGlobal>
 unsigned int DBCHandler::selectedMessageCounter = 0;
 
 DBCHandler::DBCHandler(QObject *parent)
@@ -1579,7 +1579,16 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     attr.setValue("Raw_"+curSignal->name);
                     variable.setAttributeNode(attr);
                     QDomElement type = doc.createElement("type");
-                    QDomElement dataType = doc.createElement(curSignal->appDataType);
+                    QDomElement dataType = doc.createElement(curSignal->comDataType);
+                    type.appendChild(dataType);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                    variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("Cont_"+curSignal->name);
+                    variable.setAttributeNode(attr);
+                    type = doc.createElement("type");
+                    dataType = doc.createElement(curSignal->appDataType);
                     type.appendChild(dataType);
                     variable.appendChild(type);
                     localVars.appendChild(variable);
@@ -1730,7 +1739,7 @@ void DBCHandler::generateIOST(QString *const ST,dataContainer *const curMessage)
                    "X_DWord_1:= X_IO_DWORD_1,\n"
                    "S_Sent_Ok=&gt; S_Msg_Snt_Ok);\n" );
 }
-QString DBCHandler::convTypeApptoCom (QString signalName, QString starbit,  QString converType)
+QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short starbit,  QString converType)
 {
 
 }
@@ -1822,15 +1831,180 @@ void DBCHandler::generateIIST(QString *const ST,dataContainer *const curMessage)
                 "X_Word_3=&gt; X_II_WORD_3	 ,\n"
                 "X_DWord_1=&gt;X_II_DWORD_1   );\n");
 
-    /*for( const dataContainer::signal * curSignal : *curMessage->getSignalList()){
-        if(curSignal->length == 1){
-            ST->append(convTypeComtoApp(curSignal->name,QString::number(curSignal->startBit),curSignal->convMethod));
-        }
-    }*/
+    for( const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+        ST->append(convTypeComtoApp(curSignal->name,curSignal->startBit,curSignal->length,curSignal->convMethod));
+    }
 }
-QString DBCHandler::convTypeComtoApp(QString signalName, QString starbit,  QString converType)
+QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit,unsigned short length,  QString converType)
 {
+    QString ST="\n\n\n(*THIS AREA RESERVED FOR "+signalName+"*)\n\n\n";
+    if(converType=="BOOL:BOOL"){
+        ST.append("\n"+this->dutHeader+"."+signalName+".v               := NOT S_Msg_TmOut OR FrcHi_"+signalName+"OR FrcLo_"+signalName+" ;"
+                  "\n"+this->dutHeader+"."+signalName+".x                := "+this->dutHeader+"."+signalName+".v AND (S_II_BIT_"+QString::number(startbit)+" OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+" ;");
 
+
+    }else if(converType=="2BOOL:BOOL"){
+        ST.append("\n"+this->dutHeader+"."+signalName+".v               := ((NOT S_Msg_TmOut AND NOT S_II_BIT_"+QString::number(startbit+1)+") OR FrcHi_"+signalName+" OR FrcLo_"+signalName+") ;"
+                   "\n"+this->dutHeader+"."+signalName+".x               := "+this->dutHeader+"."+signalName+".v AND (S_II_BIT_"+QString::number(startbit+1)+" OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+";");
+    }/*else if(converType=="BYTE:REAL"){
+
+        }else if(converType=="BYTE:USINT"){
+
+        }else if(converType=="BYTE:BYTE"){
+
+        }else if(converType=="WORD:REAL"){
+
+        }else if(converType=="WORD:UINT"){
+
+        }else if(converType=="WORD:WORD"){
+
+        }else if(converType=="DWORD:REAL"){
+
+        }else if(converType=="DWORD:UDINT"){
+
+        }else if(converType=="DWORD:DWORD"){
+
+        }else if(converType=="2DWORD:LREAL"){
+
+        }else if(converType=="2DWORD:ULINT"){
+
+        }else if(converType=="2DWORD:LWORD"){
+
+        }*/else{
+        bool flagPack = false;
+        if((length>7)){
+            if(length<17){
+                ST.append("\n_FB_PACK_BYTE_TO_WORD_0();");
+            }else if(length <33){
+                ST.append("\n_FB_PACK_BYTE_TO_DWORD_0();");
+            }else {
+                ST.append("\n_FB_PACK_BYTE_TO_DWORD_0();");
+                ST.append("\n_FB_PACK_BYTE_TO_DWORD_1();\n");
+            }
+        }
+        unsigned packID=0;
+        unsigned packByteID=0;
+        for(unsigned i =0; i<=length;i++){
+
+
+
+            if(flagPack){
+                if((i%8 == 0) && (i>0)){
+                    ST.append(" ,X_BYTE_0=>"+ ((length<8) ? ("Raw_"+signalName) : ((length<16) ? "_FB_PACK_BYTE_TO_WORD_" :"_FB_PACK_BYTE_TO_DWORD_"+QString::number(packID)+".X_BYTE_"+QString::number(packByteID)))+");");
+                    flagPack=false;
+                    packByteID++;
+                }
+            }
+            if((i%32 == 0) && (i>0) && length>16){
+                packID++;
+                packByteID=0;
+            }
+            if((i%16 == 0) && (i>0) && length<=16){
+                packID++;
+                packByteID=0;
+            }
+
+            if(((i%8 == 0) && ((i/8)<8) )&& (!flagPack)){
+                ST.append("\n_FB_PACK_8BIT_TO_BYTE_"+QString::number(qFloor(i/8.0))+"(");
+                flagPack=true;
+            }
+            if(flagPack){
+                if((i%8 != 0)){
+                    ST.append("S_BIT_"+QString::number(i%8)+":= S_II_BIT_"+QString::number(startbit+i)+"");
+                    if(i%8 != (qMin(unsigned(7),length-unsigned(1)))){
+                        ST.append(",");
+                    }
+                }
+            }
+
+        }
+        if((length>7)){
+            if(length<17){
+                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_WORD_0.X_WORD_0;");
+            }else if(length <33){
+                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_DWORD_0.X_DWORD_0;");
+            }else {
+                ST.append("\n_FB_PACK_DWORD_TO_LWORD_0(X_DWORD_0:=_FB_PACK_BYTE_TO_DWORD_0.X_DWORD_0,X_DWORD_1:=_FB_PACK_BYTE_TO_DWORD_1.X_DWORD_0,X_LWORD_0=> Raw_"+signalName+");");
+            }
+        }
+    }
+    if(length==1){
+        ST.append("\n"+this->dutHeader+"."+signalName+".e				:= FALSE;");
+        ST.append("\n"+this->dutHeader+"."+signalName+".na				:= FALSE;");
+    }
+    else if((length==2) && (converType != "toBYTE")){
+
+        ST.append("\n"+this->dutHeader+"."+signalName+".e				:= X_II_BIT_"+QString::number(startbit+1)+" AND NOT X_II_BIT_"+QString::number(startbit)+" ;");
+        ST.append("\n"+this->dutHeader+"."+signalName+".na				:= X_II_BIT_"+QString::number(startbit+1)+" AND X_II_BIT_"+QString::number(startbit)+" ;");
+
+    }
+    else if((length<9)){
+        if(converType == "toBYTE"){
+            ST.append("\nCont_"+signalName+"				:= Raw_"+signalName+" ;");
+        }
+        else if (converType == "toUSINT"){
+            ST.append("\nCont_"+signalName+"				:= BYTE_TO_USINT(Raw_"+signalName+") ;");
+        }
+        else if (converType == "toREAL"){
+            ST.append("\nCont_"+signalName+"				:= USINT_TO_REAL(BYTE_TO_USINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
+        }
+        ST.append( "\n"+this->dutHeader+"."+signalName+".e              :=  (Raw_"+signalName+" > 16#FDFF) AND (Raw_"+signalName+" < 16#FF00) ;");
+        ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFF) ;");
+
+    }else if((length<17)){
+        if(converType == "toBYTE"){
+            ST.append("\nCont_"+signalName+"				:= Raw_"+signalName+" ;");
+        }
+        else if (converType == "toUSINT"){
+            ST.append("\nCont_"+signalName+"				:= WORD_TO_UINT(Raw_"+signalName+") ;");
+        }
+        else if (converType == "toREAL"){
+            ST.append("\n Cont_"+signalName+"				:= UINT_TO_REAL(WORD_TO_UINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
+        }
+        ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFF) AND (Raw_"+signalName+" < 16#FF000000) ;");
+        ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFF) ;");
+
+    }else if((length<33)){
+        if(converType == "toBYTE"){
+            ST.append("\nCont_"+signalName+"               := Raw_"+signalName+" ;");
+        }
+        else if (converType == "toUSINT"){
+            ST.append("\nCont_"+signalName+"				:= DWORD_TO_UDINT(Raw_"+signalName+") ;");
+        }
+        else if (converType == "toREAL"){
+            ST.append("\nCont_"+signalName+"				:= UDINT_TO_REAL(DWORD_TO_UDINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
+        }
+        ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFFFFFFFFFF) AND (Raw_"+signalName+" < 16#FF00000000000000) ;");
+        ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFFFFFFFFFF) ;");
+
+    }else if((length<65)){
+        if(converType == "toBYTE"){
+            ST.append("\nCont_"+signalName+"               := Raw_"+signalName+" ;");
+        }
+        else if (converType == "toUSINT"){
+            ST.append("\nCont_"+signalName+"				:= LWORD_TO_ULINT(Raw_"+signalName+") ;");
+        }
+        else if (converType == "toREAL"){
+            ST.append("\nCont_"+signalName+"				:= ULINT_TO_REAL(LWORD_TO_ULINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
+        }
+        ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) AND (Raw_"+signalName+" < 16#FF000000000000000000000000000000) ;");
+        ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) ;");
+
+    }
+
+    if((length!= 1) && (!(length==2 && (converType !="toByte")))){
+        ST.append("\n"+this->dutHeader+"."+signalName+".RangeExcd 		:= NOT ((Cont_"+signalName+" >= "+this->dutHeader+"."+signalName+".Param_Min) AND ("+this->dutHeader+"."+signalName+".Param_Min <= "+this->dutHeader+"."+signalName+".Param_Max));"
+        "\n"+this->dutHeader+"."+signalName+".v				:= NOT( S_Msg_TmOut OR "+this->dutHeader+"."+signalName+".RangeExcd OR (( "+this->dutHeader+"."+signalName+".e OR "+this->dutHeader+"."+signalName+".na) AND IIDUT_NAME>."+signalName+".J1939)) OR FrcEn_"+signalName+";"
+        "\n"
+        "\nIF FrcEn_"+signalName+" THEN"
+        "\n	"+this->dutHeader+"."+signalName+".x 		   	:= FrcVal_"+signalName+";"
+        "\nELSIF "+this->dutHeader+"."+signalName+".v THEN"
+        "\n	"+this->dutHeader+"."+signalName+".x 		   	:= Cont_"+signalName+";"
+        "\nELSE"
+        "\n	"+this->dutHeader+"."+signalName+".x 		   	:= <IODUT_NAME>."+signalName+".Param_Def;"
+        "\nEND_IF;");
+    }
+    return ST;
 }
 
 

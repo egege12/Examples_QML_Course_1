@@ -114,8 +114,8 @@ private:
     //Conversion Methods
     void generateIIST(QString *const ST, dataContainer * const curMessage);
     void generateIOST(QString *const ST,dataContainer *const curMessage);
-    QString convTypeComtoApp( QString signalName,  QString starbit, QString converType);
-    QString convTypeApptoCom(QString  signalName, QString  starbit, QString converType);
+    QString convTypeComtoApp(QString signalName,  unsigned short startbit, unsigned short length, QString converType);
+    QString convTypeApptoCom(QString  signalName, unsigned short  startbit, QString converType);
 
 };
 
