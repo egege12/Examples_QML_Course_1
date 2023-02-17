@@ -22,6 +22,14 @@ class DBCHandler : public QObject
 public:
 
     static unsigned int selectedMessageCounter;
+
+    static QList<QList<QString>> pouHolder;
+    static unsigned counterfbBYTETOWORD;
+    static unsigned counterfbBYTETODWORD;
+    static unsigned counterfbBYTETOLWORD;
+    static unsigned counterfb8BITTOBYTE;
+    static unsigned counterfbDWORDTOLWORD;
+
     explicit DBCHandler(QObject *parent = nullptr);
 /*PROPERTIES STARTS*/
     Q_PROPERTY(QString errCode READ errCode WRITE setErrCode NOTIFY errCodeChanged)

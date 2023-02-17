@@ -3,7 +3,11 @@
 #include "qforeach.h"
 #include <QtGlobal>
 unsigned int DBCHandler::selectedMessageCounter = 0;
-
+unsigned DBCHandler::counterfbBYTETOWORD;
+unsigned DBCHandler::counterfbBYTETODWORD;
+unsigned DBCHandler::counterfbBYTETOLWORD;
+unsigned DBCHandler::counterfb8BITTOBYTE;
+unsigned DBCHandler::counterfbDWORDTOLWORD;
 DBCHandler::DBCHandler(QObject *parent)
     : QObject{parent}
 {
@@ -398,6 +402,8 @@ void DBCHandler::startToGenerate()
             this->setErrCode(text);
         }
     }
+    fbNameandObjId.clear();
+
     //do here
 }
 
@@ -593,6 +599,7 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
             object.setAttributeNode(attr);
             folder2.appendChild(object);
         }
+
         //DUTs
         ProjectStructure.appendChild(folder1);
         folder1 = doc.createElement("Folder");
@@ -885,6 +892,8 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
                 interface.appendChild(inoutVars);
             }
             /*Generate Local Variables - inoutVars*/
+            QString STcode;
+            this->generateIIST(&STcode,curMessage);
             {
                 QDomElement localVars= doc.createElement("localVars");
                 /*Function block declaration*/
@@ -1122,14 +1131,103 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
                     attr.setValue("Raw_"+curSignal->name);
                     variable.setAttributeNode(attr);
                     QDomElement type = doc.createElement("type");
-                    QDomElement dataType = doc.createElement(curSignal->appDataType);
+                    QDomElement dataType = doc.createElement(curSignal->comDataType);
+                    type.appendChild(dataType);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                    variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("Cont_"+curSignal->name);
+                    variable.setAttributeNode(attr);
+                    type = doc.createElement("type");
+                    dataType = doc.createElement(curSignal->appDataType);
                     type.appendChild(dataType);
                     variable.appendChild(type);
                     localVars.appendChild(variable);
                 }
+                for (unsigned i =0; i<counterfbBYTETOWORD; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_BYTE_TO_WORD_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_BYTE_TO_WORD");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+                for (unsigned i =0; i<counterfbBYTETODWORD; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_BYTE_TO_DWORD_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_BYTE_TO_DWORD");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+
+                }
+                for (unsigned i =0; i<counterfbBYTETOLWORD; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_BYTE_TO_LWORD_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_BYTE_TO_LWORD");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+                for (unsigned i =0; i<counterfb8BITTOBYTE; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_8BITS_TO_BYTE_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_8BITS_TO_BYTE");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+                for (unsigned i =0; i<counterfbDWORDTOLWORD; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_DWORD_TO_LWORD_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_PACK_DWORD_TO_LWORD");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+
+                /*Function Block declaratoins*/
+                DBCHandler::counterfbBYTETOWORD=0;
+                DBCHandler::counterfbBYTETODWORD=0;
+                DBCHandler::counterfbBYTETOLWORD=0;
+                DBCHandler::counterfb8BITTOBYTE=0;
+                DBCHandler::counterfbDWORDTOLWORD=0;
+
 
                 interface.appendChild(localVars);
             }
+            pou.appendChild(interface);
             /**
  *
  *
@@ -1149,8 +1247,7 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
             attr=doc.createAttribute("xmlns");
             attr.setValue("http://www.w3.org/1999/xhtml");
             xhtml.setAttributeNode(attr);
-            QString STcode;
-            this->generateIIST(&STcode,curMessage);
+
             text=doc.createTextNode(STcode);
             xhtml.appendChild(text);
             ST.appendChild(xhtml);
@@ -1182,6 +1279,9 @@ void DBCHandler::generateIIPous(QDomElement * pous, QDomDocument &doc)
     }
 
 }
+///******************************************************************************
+/// RECEIVE MESSAGES FUNCTION BLOCK ST GENERATOR
+///******************************************************************************
 void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
 {
     QDomAttr attr;
@@ -1322,7 +1422,9 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                 }
                 interface.appendChild(inoutVars);
             }
-            /*Generate Local Variables - inoutVars*/
+            /*Generate Local Variables - localVars*/
+
+
             {
                 QDomElement localVars= doc.createElement("localVars");
                 /*Function block declaration*/
@@ -1593,8 +1695,8 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     variable.appendChild(type);
                     localVars.appendChild(variable);
                 }
-
                 interface.appendChild(localVars);
+
             }
 
             pou.appendChild(interface);
@@ -1612,17 +1714,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
             ST.appendChild(xhtml);
             body.appendChild(ST);
             pou.appendChild(body);
-            /**
- *
- *
- *
- *
- * FUNCTION DEFINITIONS WILL BE PLACED HERE
- *
- *
- *
- *
- * /
+
             /*Create addData*/
             QDomElement addData = doc.createElement("addData");
             QDomElement data = doc.createElement("data");
@@ -1649,7 +1741,6 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
 
 
 }
-
 void DBCHandler::generateIOST(QString *const ST,dataContainer *const curMessage)
 {
     ST->append(    "_FB_CanTx_Message_Unpack(\n"
@@ -1738,11 +1829,17 @@ void DBCHandler::generateIOST(QString *const ST,dataContainer *const curMessage)
                    "X_Word_3:= 	X_IO_WORD_3	,\n"
                    "X_DWord_1:= X_IO_DWORD_1,\n"
                    "S_Sent_Ok=&gt; S_Msg_Snt_Ok);\n" );
+
+
+
 }
 QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short starbit,  QString converType)
 {
 
 }
+///******************************************************************************
+/// RECEIVE MESSAGES FUNCTION BLOCK ST GENERATOR
+///******************************************************************************
 void DBCHandler::generateIIST(QString *const ST,dataContainer *const curMessage)
 {
     ST->append( "\n_FB_CanRx_Message_Unpack_0(\n"
@@ -1834,6 +1931,8 @@ void DBCHandler::generateIIST(QString *const ST,dataContainer *const curMessage)
     for( const dataContainer::signal * curSignal : *curMessage->getSignalList()){
         ST->append(convTypeComtoApp(curSignal->name,curSignal->startBit,curSignal->length,curSignal->convMethod));
     }
+
+
 }
 QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit,unsigned short length,  QString converType)
 {
@@ -1841,53 +1940,41 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
     if(converType=="BOOL:BOOL"){
         ST.append("\n"+this->dutHeader+"."+signalName+".v               := NOT S_Msg_TmOut OR FrcHi_"+signalName+"OR FrcLo_"+signalName+" ;"
                   "\n"+this->dutHeader+"."+signalName+".x                := "+this->dutHeader+"."+signalName+".v AND (S_II_BIT_"+QString::number(startbit)+" OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+" ;");
-
-
     }else if(converType=="2BOOL:BOOL"){
         ST.append("\n"+this->dutHeader+"."+signalName+".v               := ((NOT S_Msg_TmOut AND NOT S_II_BIT_"+QString::number(startbit+1)+") OR FrcHi_"+signalName+" OR FrcLo_"+signalName+") ;"
                    "\n"+this->dutHeader+"."+signalName+".x               := "+this->dutHeader+"."+signalName+".v AND (S_II_BIT_"+QString::number(startbit+1)+" OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+";");
-    }else if(converType=="BYTE:REAL"){
-
-    }else if(converType=="BYTE:USINT"){
-
-    }else if(converType=="BYTE:BYTE"){
-
-    }else if(converType=="WORD:REAL"){
-
-    }else if(converType=="WORD:UINT"){
-
-    }else if(converType=="WORD:WORD"){
-
-    }else if(converType=="DWORD:REAL"){
-
-    }else if(converType=="DWORD:UDINT"){
-
-    }else if(converType=="DWORD:DWORD"){
-
-    }else if(converType=="2DWORD:LREAL"){
-
-    }else if(converType=="2DWORD:ULINT"){
-
-    }else if(converType=="2DWORD:LWORD"){
-
+    }else if((converType=="xtoBYTE")||(converType=="xtoUSINT")||((converType=="xtoREAL") && (length==8))){
+        ST.append("\nRaw_"+signalName+"             := X_II_BYTE_"+QString::number(startbit/8)+";");
+    }else if((converType=="xtoWORD")||(converType=="xtoUINT")||((converType=="xtoREAL") && (length==16))){
+        ST.append("\n_FB_PACK_BYTE_TO_WORD_"+QString::number(counterfbBYTETOWORD)+"(X_BYTE_0:= S_II_BYTE_"+QString::number(startbit/8)+", X_BYTE_1:=  S_II_BYTE_"+QString::number((startbit/8)+1)+", X_WORD_0 => Raw_"+signalName+");");
+        counterfbBYTETOWORD++;
+    }else if((converType=="xtoDWORD")||(converType=="xtoUDINT")||((converType=="xtoREAL") && (length==32))){
+        ST.append("\n_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+"(X_BYTE_0:= S_II_BYTE_"+QString::number(startbit/8)+", X_BYTE_1:= S_II_BYTE_"+QString::number((startbit/8)+1)+", X_BYTE_2:= S_II_BYTE_"+QString::number((startbit/8)+2)+", X_BYTE_3:= S_II_BYTE_"+QString::number((startbit/8)+3)+" , X_DWORD_0 => Raw_"+signalName+");");
+        counterfbBYTETODWORD++;
+    }else if((converType=="xtoLWORD")||(converType=="xtoULINT")||(converType=="xtoLREAL") ){
+        ST.append("\n_FB_PACK_BYTE_TO_LWORD_"+QString::number(counterfbBYTETOLWORD)+"(X_BYTE_0:= S_II_BYTE_"+QString::number(startbit/8)+", X_BYTE_1:= S_II_BYTE_"+QString::number((startbit/8)+1)+", X_BYTE_2:=S_II_BYTE_"+QString::number((startbit/8)+2)+" , X_BYTE_3:= S_II_BYTE_"+QString::number((startbit/8)+3)+", X_BYTE_4:= S_II_BYTE_"+QString::number((startbit/8)+4)+", X_BYTE_5:= S_II_BYTE_"+QString::number((startbit/8)+5)+", X_BYTE_6:= S_II_BYTE_"+QString::number((startbit/8)+6)+", X_BYTE_7:= S_II_BYTE_"+QString::number((startbit/8)+7)+" , X_II_DWORD_0 := Raw_"+signalName+");");
+        counterfbDWORDTOLWORD++;
     }else{
         bool flagPack = false;
         if((length>8)){
             if(length<17){
-                ST.append("\n_FB_PACK_BYTE_TO_WORD_0();");
+                ST.append("\n_FB_PACK_BYTE_TO_WORD_"+QString::number(counterfbBYTETOWORD)+"();");
+
             }else if(length <33){
-                ST.append("\n_FB_PACK_BYTE_TO_DWORD_0();");
+                ST.append("\n_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+"();");
+
             }else {
-                ST.append("\n_FB_PACK_BYTE_TO_DWORD_0();");
-                ST.append("\n_FB_PACK_BYTE_TO_DWORD_1();\n");
+                ST.append("\n_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+"();");
+                ST.append("\n_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD+1)+"();\n");
+
             }
         }
         unsigned packID=0;
         unsigned packByteID=0;
+        unsigned counterBITBYTE=0;
+        unsigned counterBYTEWORD=0;
+        unsigned counterBYTEDWORD=0;
         for(unsigned i =0; i<length;i++){
-
-
-
 
             if((i%32 == 0) && (i>0) && length>16){
                 packID++;
@@ -1899,35 +1986,52 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
             }
 
             if(((i%8 == 0) && ((i/8)<8) )&& (!flagPack)){
-                ST.append("\n_FB_PACK_8BIT_TO_BYTE_"+QString::number(qFloor(i/8.0))+"(");
+                ST.append("\n_FB_PACK_8BIT_TO_BYTE_"+QString::number(counterfb8BITTOBYTE+qFloor(i/8.0))+"(");
+                counterBITBYTE++;
                 flagPack=true;
             }
             if(flagPack){
-                if((i%8 != 0)){
                     ST.append("S_BIT_"+QString::number(i%8)+":= S_II_BIT_"+QString::number(startbit+i)+"");
-                    if(i%8 != (qMin(unsigned(7),length-unsigned(1)))){
+                    if(((i%8 != 7) &&(i%(length-1) != 0)) || (i==0)) {
                         ST.append(",");
                     }
-                }
             }
             if(flagPack){
-                if((i%8 == 7) && (i>0)){
-                    ST.append(" ,X_BYTE_0=>"+ ((length<9) ? ("Raw_"+signalName) : ((length<17) ? ("_FB_PACK_BYTE_TO_WORD_") :("_FB_PACK_BYTE_TO_DWORD_")+QString::number(packID)+".X_BYTE_"+QString::number(packByteID)))+");");
+                if(((i%8 == 7)||(i%(length-1) == 0) )&& (i>0)){
+                    ST.append(" ,X_BYTE_0=>");
+                    if(length<9){
+                    ST.append("Raw_"+signalName);
+                    ST.append(");");
+                    }else if (length <17){
+                    ST.append("_FB_PACK_BYTE_TO_WORD_"+QString::number(counterfbBYTETOWORD+packID));
+                    ST.append(".X_BYTE_"+QString::number(packByteID)+");");
+                    }else{
+                    ST.append("_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD+packID)+"");
+                    ST.append(".X_BYTE_"+QString::number(packByteID)+");");
+                    }
+
                     flagPack=false;
                     packByteID++;
                 }
             }
 
         }
+
         if((length>8)){
             if(length<17){
-                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_WORD_0.X_WORD_0;");
+                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_WORD_"+QString::number(counterfbBYTETOWORD)+".X_WORD_0;");
+                counterfbBYTETOWORD++;
             }else if(length <33){
-                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_DWORD_0.X_DWORD_0;");
+                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+".X_DWORD_0;");
+                counterfbBYTETODWORD++;
             }else {
-                ST.append("\n_FB_PACK_DWORD_TO_LWORD_0(X_DWORD_0:=_FB_PACK_BYTE_TO_DWORD_0.X_DWORD_0,X_DWORD_1:=_FB_PACK_BYTE_TO_DWORD_1.X_DWORD_0,X_LWORD_0=> Raw_"+signalName+");");
+                ST.append("\n_FB_PACK_DWORD_TO_LWORD_"+QString::number(counterfbDWORDTOLWORD)+"(X_DWORD_0:=_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+".X_DWORD_0,X_DWORD_1:=_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD+1)+".X_DWORD_0,X_LWORD_0=> Raw_"+signalName+");");
+            counterfbDWORDTOLWORD++;
+            counterfbBYTETODWORD++;
+            counterfbBYTETODWORD++;
             }
         }
+        counterfb8BITTOBYTE = counterfb8BITTOBYTE+ counterBITBYTE;
     }
     // TYPE CONVERTION AND E  NA CONTROL STARTS
     if(length==1){
@@ -1941,53 +2045,53 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
 
     }
     else if((length<9)){
-        if(converType == "toBYTE"){
+        if((converType == "toBYTE")|| (converType == "xtoBYTE")){
             ST.append("\nCont_"+signalName+"				:= Raw_"+signalName+" ;");
         }
-        else if (converType == "toUSINT"){
+        else if ((converType == "toUSINT")|| (converType == "xtoUSINT")){
             ST.append("\nCont_"+signalName+"				:= BYTE_TO_USINT(Raw_"+signalName+") ;");
         }
-        else if (converType == "toREAL"){
+        else if ((converType == "toREAL")|| (converType == "xtoREAL")){
             ST.append("\nCont_"+signalName+"				:= USINT_TO_REAL(BYTE_TO_USINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
         }
         ST.append( "\n"+this->dutHeader+"."+signalName+".e              :=  (Raw_"+signalName+" > 16#FDFF) AND (Raw_"+signalName+" < 16#FF00) ;");
         ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFF) ;");
 
     }else if((length<17)){
-        if(converType == "toBYTE"){
+        if((converType == "toWORD")|| (converType == "xtoWORD")){
             ST.append("\nCont_"+signalName+"				:= Raw_"+signalName+" ;");
         }
-        else if (converType == "toUSINT"){
+        else if ((converType == "toUINT")|| (converType == "xtoUINT")){
             ST.append("\nCont_"+signalName+"				:= WORD_TO_UINT(Raw_"+signalName+") ;");
         }
-        else if (converType == "toREAL"){
+        else if ((converType == "toREAL")|| (converType == "xtoREAL")){
             ST.append("\n Cont_"+signalName+"				:= UINT_TO_REAL(WORD_TO_UINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
         }
         ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFF) AND (Raw_"+signalName+" < 16#FF000000) ;");
         ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFF) ;");
 
     }else if((length<33)){
-        if(converType == "toBYTE"){
+        if((converType == "toDWORD")|| (converType == "xtoDWORD")){
             ST.append("\nCont_"+signalName+"               := Raw_"+signalName+" ;");
         }
-        else if (converType == "toUSINT"){
+        else if ((converType == "toUDINT")|| (converType == "xtoUDINT")){
             ST.append("\nCont_"+signalName+"				:= DWORD_TO_UDINT(Raw_"+signalName+") ;");
         }
-        else if (converType == "toREAL"){
+        else if ((converType == "toREAL")|| (converType == "xtoREAL")){
             ST.append("\nCont_"+signalName+"				:= UDINT_TO_REAL(DWORD_TO_UDINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
         }
         ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFFFFFFFFFF) AND (Raw_"+signalName+" < 16#FF00000000000000) ;");
         ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFFFFFFFFFF) ;");
 
     }else if((length<65)){
-        if(converType == "toBYTE"){
+        if((converType == "toLWORD")|| (converType == "xtoLWORD")){
             ST.append("\nCont_"+signalName+"               := Raw_"+signalName+" ;");
         }
-        else if (converType == "toUSINT"){
+        else if ((converType == "toULINT")|| (converType == "xtoULINT")){
             ST.append("\nCont_"+signalName+"				:= LWORD_TO_ULINT(Raw_"+signalName+") ;");
         }
-        else if (converType == "toREAL"){
-            ST.append("\nCont_"+signalName+"				:= ULINT_TO_REAL(LWORD_TO_ULINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
+        else if ((converType == "toLREAL")|| (converType == "xtoLREAL")){
+            ST.append("\nCont_"+signalName+"				:= ULINT_TO_LREAL(LWORD_TO_ULINT(Raw_"+signalName+"))*"+this->dutHeader+"."+signalName+".Param_Res+"+this->dutHeader+"."+signalName+".Param_Off ;");
         }
         ST.append("\n"+this->dutHeader+"."+signalName+".e              := (Raw_"+signalName+" > 16#FDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) AND (Raw_"+signalName+" < 16#FF000000000000000000000000000000) ;");
         ST.append("\n"+this->dutHeader+"."+signalName+".na              := (Raw_"+signalName+" > 16#FEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) ;");
@@ -2003,7 +2107,7 @@ QString DBCHandler::convTypeComtoApp(QString signalName, unsigned short startbit
         "\nELSIF "+this->dutHeader+"."+signalName+".v THEN"
         "\n	"+this->dutHeader+"."+signalName+".x 		   	:= Cont_"+signalName+";"
         "\nELSE"
-        "\n	"+this->dutHeader+"."+signalName+".x 		   	:= <IODUT_NAME>."+signalName+".Param_Def;"
+        "\n	"+this->dutHeader+"."+signalName+".x 		   	:= "+this->dutHeader+"."+signalName+".Param_Def;"
         "\nEND_IF;\n");
     }
     ST.append("\n\n\n(*Conversion ends : "+signalName+"*)\n\n\n");
