@@ -219,9 +219,9 @@ bool DBCHandler::parseMessages(QFile *ascFile)
 
             msgCommentList.append({ID,msTimeout,msCycleTime,commentContainer});
             if (commentContainer.contains(QString("j1939"),Qt::CaseInsensitive)){
-                  foreach(dataContainer *const curValue , comInterface){
-
-                  }
+                      for( dataContainer::signal * curSignal : *comInterface.value(ID)->getSignalList()){
+                        curSignal->isJ1939 = true;
+                      }
             }
 
         }else{
@@ -2635,6 +2635,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
 
     unsigned long counterJ1939=0;
     foreach (dataContainer * curMessage , comInterface){
+        if(curMessage->getIfSelected())
         for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
             if(curSignal->isJ1939){
                 counterJ1939++;
@@ -2660,6 +2661,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             QDomElement inputVars = doc.createElement("inputVars");
 
             foreach (dataContainer * curMessage , comInterface){
+                if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
                     if(curSignal->isJ1939){
 
@@ -2707,6 +2709,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             QString handlerText="";
             /*ST text of Error Handler*/
             foreach (dataContainer * curMessage , comInterface){
+                if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
                     if(curSignal->isJ1939){
                         handlerText.append("\n"+this->dutHeader+ "."+curSignal->name+ ".e 					:=	ERR_"+curSignal->name+ ";");
@@ -2715,6 +2718,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             }
             /*ST text of Error Handler*/
             text=doc.createTextNode(handlerText);
+            xhtml.appendChild(text);
             ST.appendChild(xhtml);
             body.appendChild(ST);
             pou.appendChild(body);
@@ -2761,6 +2765,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             QDomElement inputVars = doc.createElement("inputVars");
 
             foreach (dataContainer * curMessage , comInterface){
+                if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
                     if(curSignal->isJ1939){
 
@@ -2808,6 +2813,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             QString handlerText="";
             /*ST text of NA Handler*/
             foreach (dataContainer * curMessage , comInterface){
+                if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
                     if(curSignal->isJ1939){
                         handlerText.append("\n"+this->dutHeader+ "."+curSignal->name+ ".na 					:=	NA_"+curSignal->name+ ";");
@@ -2816,6 +2822,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             }
             /*ST text of Error Handler*/
             text=doc.createTextNode(handlerText);
+            xhtml.appendChild(text);
             ST.appendChild(xhtml);
             body.appendChild(ST);
             pou.appendChild(body);
@@ -2844,6 +2851,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             pous->appendChild(pou);
 
         }
+        }
         /*VALITIY HANDLER*/
         {
             QDomElement pou = doc.createElement("pou");
@@ -2861,6 +2869,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             QDomElement inputVars = doc.createElement("inputVars");
 
             foreach (dataContainer * curMessage , comInterface){
+                if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
                     if(curSignal->isJ1939){
 
@@ -2908,6 +2917,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             QString handlerText="";
             /*ST text of NA Handler*/
             foreach (dataContainer * curMessage , comInterface){
+                if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
                     if(curSignal->isJ1939){
                         handlerText.append("\n"+this->dutHeader+ "."+curSignal->name+ ".v					:=	VALID_"+curSignal->name+ ";");
@@ -2916,6 +2926,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             }
             /*ST text of Error Handler*/
             text=doc.createTextNode(handlerText);
+            xhtml.appendChild(text);
             ST.appendChild(xhtml);
             body.appendChild(ST);
             pou.appendChild(body);
@@ -2944,7 +2955,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             pous->appendChild(pou);
 
         }
-    }
+
 }
 
 
