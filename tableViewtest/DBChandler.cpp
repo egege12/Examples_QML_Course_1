@@ -3,11 +3,15 @@
 #include "qforeach.h"
 #include <QtGlobal>
 unsigned int DBCHandler::selectedMessageCounter = 0;
-unsigned DBCHandler::counterfbBYTETOWORD;
-unsigned DBCHandler::counterfbBYTETODWORD;
-unsigned DBCHandler::counterfbBYTETOLWORD;
-unsigned DBCHandler::counterfb8BITTOBYTE;
-unsigned DBCHandler::counterfbDWORDTOLWORD;
+unsigned DBCHandler::counterfbBYTETOWORD = 0;
+unsigned DBCHandler::counterfbBYTETODWORD = 0;
+unsigned DBCHandler::counterfbBYTETOLWORD = 0;
+unsigned DBCHandler::counterfb8BITTOBYTE = 0;
+unsigned DBCHandler::counterfbDWORDTOLWORD = 0;
+unsigned DBCHandler::counterfbLWORDTOBYTE = 0;
+unsigned DBCHandler::counterfbDWORDTOBYTE = 0;
+unsigned DBCHandler::counterfbWORDTOBYTE = 0;
+unsigned DBCHandler::counterfbBYTETO8BIT = 0;
 DBCHandler::DBCHandler(QObject *parent)
     : QObject{parent}
 {
@@ -196,7 +200,7 @@ bool DBCHandler::parseMessages(QFile *ascFile)
             curSignal.maxValue = parseMaxValue(signalList.at(6));
             QString commentContainer = parseComment(curLine);
             curSignal.comment = commentContainer;
-            curSignal.isJ1939 = commentContainer.contains(QString("j1939"),Qt::CaseInsensitive);
+            curSignal.isJ1939 = commentContainer.contains(QString("j1939"),Qt::CaseInsensitive) ;
             /*Defualt value*/
             if(commentContainer.contains(QString("defValue="),Qt::CaseInsensitive)){
                 curSignal.defValue=commentContainer.mid(commentContainer.indexOf("defValue=")+9,10).trimmed().toDouble();
@@ -214,6 +218,11 @@ bool DBCHandler::parseMessages(QFile *ascFile)
             QString msCycleTime = this->getBetween("cycletime","ms",commentContainer);
 
             msgCommentList.append({ID,msTimeout,msCycleTime,commentContainer});
+            if (commentContainer.contains(QString("j1939"),Qt::CaseInsensitive)){
+                  foreach(dataContainer *const curValue , comInterface){
+
+                  }
+            }
 
         }else{
             inlineOfMessage = false;
@@ -270,7 +279,7 @@ bool DBCHandler::createObjIds()
     if(this->IOType == "IO"){
         name = "_FB_"+this->dutHeader+"_NA_Handler";
         this->fbNameandObjId.append({name,getObjID()});
-        name = "_FB_"+this->dutHeader+"_Err_Handler";
+        name = "_FB_"+this->dutHeader+"_ERR_Handler";
         this->fbNameandObjId.append({name,getObjID()});
         name = "_FB_"+this->dutHeader+"_Validty_Handler";
         this->fbNameandObjId.append({name,getObjID()});
@@ -547,10 +556,13 @@ bool DBCHandler::createXml_STG1(QFile *xmlFile)
         dataType.appendChild(addData);
         dataTypes.appendChild(dataType);
         types.appendChild(dataTypes);
-        if((this->IOType == "II"))
+        if((this->IOType == "II")){
             this->generateIIPous(&pous,doc);
-        else
+        }
+        else{
             this->generateIOPous(&pous,doc);
+            this->generateHandlers(&pous,doc);
+        }
         types.appendChild(pous);
         elemProject.appendChild(types);
 
@@ -1689,6 +1701,8 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                 }
                 interface.appendChild(inoutVars);
             }
+            QString STcode;
+            this->generateIOST(&STcode,curMessage);
             /*Generate Local Variables - localVars*/
             {
                 QDomElement localVars= doc.createElement("localVars");
@@ -1952,6 +1966,69 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
                     localVars.appendChild(variable);
 
                 }
+                for (unsigned i =0; i<counterfbLWORDTOBYTE; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_LWORD_TO_BYTE_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_LWORD_TO_BYTE");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+
+                }
+                for (unsigned i =0; i<counterfbDWORDTOBYTE; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_DWORD_TO_BYTE_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_DWORD_TO_BYTE");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+                for (unsigned i =0; i<counterfbWORDTOBYTE; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_WORD_TO_BYTE_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_WORD_TO_BYTE");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+                for (unsigned i =0; i<counterfbBYTETO8BIT; i++){
+                    QDomElement variable=doc.createElement("variable");
+                    attr=doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_BYTE_TO_8BITS_"+QString::number(i));
+                    variable.setAttributeNode(attr);
+                    QDomElement type = doc.createElement("type");
+                    QDomElement derived = doc.createElement("derived");
+                    attr = doc.createAttribute("name");
+                    attr.setValue("_FB_UNPACK_BYTE_TO_8BITS");
+                    derived.setAttributeNode(attr);
+                    type.appendChild(derived);
+                    variable.appendChild(type);
+                    localVars.appendChild(variable);
+                }
+
+                counterfbLWORDTOBYTE = 0;
+                counterfbDWORDTOBYTE = 0;
+                counterfbWORDTOBYTE = 0;
+                counterfbBYTETO8BIT = 0;
+
                 interface.appendChild(localVars);
 
             }
@@ -1964,8 +2041,7 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
             attr=doc.createAttribute("xmlns");
             attr.setValue("http://www.w3.org/1999/xhtml");
             xhtml.setAttributeNode(attr);
-            QString STcode;
-            this->generateIOST(&STcode,curMessage);
+
             text=doc.createTextNode(STcode);
             xhtml.appendChild(text);
             ST.appendChild(xhtml);
@@ -1998,6 +2074,8 @@ void DBCHandler::generateIOPous(QDomElement * pous, QDomDocument &doc)
 
 
 }
+
+
 void DBCHandler::generateIOST(QString *const ST,dataContainer *const curMessage)
 {
     for( const dataContainer::signal * curSignal : *curMessage->getSignalList()){
@@ -2106,390 +2184,397 @@ QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short startbi
     else if((length<9)){
         if((converType == "toBYTE")|| (converType == "xtoBYTE")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= FrcVal_"+signalName+";"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF "+this->dutHeader+"."+signalName+".na THEN"
-            "		Con_"+signalName+":= 16#FF01;"
-            "	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
-            "		Con_"+signalName+":= 16#FE01;"
-            "	ELSE"
-            "		Con_"+signalName+":= 16#FE01;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= FrcVal_"+signalName+";"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF "+this->dutHeader+"."+signalName+".na THEN"
+            "\n 		Con_"+signalName+":= 16#FF01;"
+            "\n 	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
+            "\n 		Con_"+signalName+":= 16#FE01;"
+            "\n 	ELSE"
+            "\n 		Con_"+signalName+":= 16#FE01;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
         }
         else if ((converType == "toUSINT")|| (converType == "xtoUSINT")){
 
             ST.append("<"+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= USINT_TO_BYTE(FrcVal_"+signalName+");"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= USINT_TO_BYTE("+this->dutHeader+"."+signalName+".x );"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF "+this->dutHeader+"."+signalName+".na THEN"
-            "		Con_"+signalName+":= 16#FF01;"
-            "	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
-            "		Con_"+signalName+":= 16#FE01;"
-            "	ELSE"
-            "		Con_"+signalName+":= 16#FE01;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= USINT_TO_BYTE("+this->dutHeader+"."+signalName+".Param_Def );"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= USINT_TO_BYTE(FrcVal_"+signalName+");"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= USINT_TO_BYTE("+this->dutHeader+"."+signalName+".x );"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF "+this->dutHeader+"."+signalName+".na THEN"
+            "\n 		Con_"+signalName+":= 16#FF01;"
+            "\n 	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
+            "\n 		Con_"+signalName+":= 16#FE01;"
+            "\n 	ELSE"
+            "\n 		Con_"+signalName+":= 16#FE01;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= USINT_TO_BYTE("+this->dutHeader+"."+signalName+".Param_Def );"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
 
         }
         else if ((converType == "toREAL")|| (converType == "xtoREAL")){
 
 
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= USINT_TO_BYTE(REAL_TO_USINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= USINT_TO_BYTE(REAL_TO_USINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF "+this->dutHeader+"."+signalName+".na THEN"
-            "		Con_"+signalName+":= 16#FF01;"
-            "	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
-            "		Con_"+signalName+":= 16#FE01;"
-            "	ELSE"
-            "		Con_"+signalName+":= 16#FE01;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= USINT_TO_BYTE(REAL_TO_USINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= USINT_TO_BYTE(REAL_TO_USINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= USINT_TO_BYTE(REAL_TO_USINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF "+this->dutHeader+"."+signalName+".na THEN"
+            "\n 		Con_"+signalName+":= 16#FF01;"
+            "\n 	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
+            "\n 		Con_"+signalName+":= 16#FE01;"
+            "\n 	ELSE"
+            "\n 		Con_"+signalName+":= 16#FE01;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= USINT_TO_BYTE(REAL_TO_USINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
 
         }
 
     }else if((length<17)){
         if((converType == "toWORD")|| (converType == "xtoWORD")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= FrcVal_"+signalName+";"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF "+this->dutHeader+"."+signalName+".na THEN"
-            "		Con_"+signalName+":= 16#FF000001;"
-            "	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
-            "		Con_"+signalName+":= 16#FE000001;"
-            "	ELSE"
-            "		Con_"+signalName+":= 16#FE000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+           "\n //Transmit Data : Range Control End"
+           "\n IF FrcEn_"+signalName+" THEN"
+           "\n 	//Transmit Data : Force variable Start"
+           "\n 	Con_"+signalName+"	:= FrcVal_"+signalName+";"
+           "\n 	//Transmit Data : Force variable Start"
+           "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+           "\n 	//Transmit Data : Normal Start"
+           "\n 	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
+           "\n 	 //Transmit Data : Normal End"
+           "\n ELSE"
+           "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+           "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+           "\n 	IF "+this->dutHeader+"."+signalName+".na THEN"
+           "\n 		Con_"+signalName+":= 16#FF000001;"
+           "\n 	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
+           "\n 		Con_"+signalName+":= 16#FE000001;"
+           "\n 	ELSE"
+           "\n 		Con_"+signalName+":= 16#FE000001;"
+           "\n 	END_IF;"
+           "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+           "\n 	ELSE"
+           "\n 	//Transmit Data : Data not valid  Start"
+           "\n 		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
+           "\n 	//Transmit Data : Data not valid  End"
+           "\n 	END_IF;"
+           "\n END_IF;");
         }
         else if ((converType == "toUINT")|| (converType == "xtoUINT")){
 
             ST.append("<"+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= UINT_TO_WORD(FrcVal_"+signalName+");"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= UINT_TO_WORD("+this->dutHeader+"."+signalName+".x );"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF "+this->dutHeader+"."+signalName+".na THEN"
-            "		Con_"+signalName+":= 16#FF000001;"
-            "	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
-            "		Con_"+signalName+":= 16#FE000001;"
-            "	ELSE"
-            "		Con_"+signalName+":= 16#FE000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= UINT_TO_WORD("+this->dutHeader+"."+signalName+".Param_Def );"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= UINT_TO_WORD(FrcVal_"+signalName+");"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= UINT_TO_WORD("+this->dutHeader+"."+signalName+".x );"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF "+this->dutHeader+"."+signalName+".na THEN"
+            "\n 		Con_"+signalName+":= 16#FF000001;"
+            "\n 	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
+            "\n 		Con_"+signalName+":= 16#FE000001;"
+            "\n 	ELSE"
+            "\n 		Con_"+signalName+":= 16#FE000001;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= UINT_TO_WORD("+this->dutHeader+"."+signalName+".Param_Def );"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
 
         }
         else if ((converType == "toREAL")|| (converType == "xtoREAL")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= UINT_TO_WORD(REAL_TO_UINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= UINT_TO_WORD(REAL_TO_UINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF "+this->dutHeader+"."+signalName+".na THEN"
-            "		Con_"+signalName+":= 16#FF000001;"
-            "	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
-            "		Con_"+signalName+":= 16#FE000001;"
-            "	ELSE"
-            "		Con_"+signalName+":= 16#FE000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= UINT_TO_WORD(REAL_TO_UINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= UINT_TO_WORD(REAL_TO_UINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= UINT_TO_WORD(REAL_TO_UINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF "+this->dutHeader+"."+signalName+".na THEN"
+            "\n 		Con_"+signalName+":= 16#FF000001;"
+            "\n 	ELSIF "+this->dutHeader+"."+signalName+".e THEN"
+            "\n 		Con_"+signalName+":= 16#FE000001;"
+            "\n 	ELSE"
+            "\n 		Con_"+signalName+":= 16#FE000001;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= UINT_TO_WORD(REAL_TO_UINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
         }
 
     }else if((length<33)){
         if((converType == "toDWORD")|| (converType == "xtoDWORD")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= FrcVal_"+signalName+";"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
-            "	Con_<VAR_NAME>:= 16#FF00000000000001;"
-            "	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
-            "	Con_<VAR_NAME>:= 16#FE00000000000001;"
-            "	ELSE"
-            "	Con_<VAR_NAME>:= 16#FE00000000000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+           "\n //Transmit Data : Range Control End"
+           "\n IF FrcEn_"+signalName+" THEN"
+           "\n 	//Transmit Data : Force variable Start"
+           "\n 	Con_"+signalName+"	:= FrcVal_"+signalName+";"
+           "\n 	//Transmit Data : Force variable Start"
+           "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+           "\n 	//Transmit Data : Normal Start"
+           "\n 	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
+           "\n 	 //Transmit Data : Normal End"
+           "\n ELSE"
+           "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+           "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+           "\n 	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
+           "\n 	Con_<VAR_NAME>:= 16#FF00000000000001;"
+           "\n 	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
+           "\n 	Con_<VAR_NAME>:= 16#FE00000000000001;"
+           "\n 	ELSE"
+           "\n 	Con_<VAR_NAME>:= 16#FE00000000000001;"
+           "\n 	END_IF;"
+           "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+           "\n 	ELSE"
+           "\n 	//Transmit Data : Data not valid  Start"
+           "\n 		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
+           "\n 	//Transmit Data : Data not valid  End"
+           "\n 	END_IF;"
+           "\n END_IF;");
         }
         else if ((converType == "toUDINT")|| (converType == "xtoUDINT")){
 
             ST.append("<"+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= UDINT_TO_DWORD(FrcVal_"+signalName+");"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= UDINT_TO_DWORD("+this->dutHeader+"."+signalName+".x );"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
-            "	Con_<VAR_NAME>:= 16#FF00000000000001;"
-            "	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
-            "	Con_<VAR_NAME>:= 16#FE00000000000001;"
-            "	ELSE"
-            "	Con_<VAR_NAME>:= 16#FE00000000000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= UDINT_TO_DWORD("+this->dutHeader+"."+signalName+".Param_Def );"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+           "\n //Transmit Data : Range Control End"
+           "\n IF FrcEn_"+signalName+" THEN"
+           "\n 	//Transmit Data : Force variable Start"
+           "\n 	Con_"+signalName+"	:= UDINT_TO_DWORD(FrcVal_"+signalName+");"
+           "\n 	//Transmit Data : Force variable Start"
+           "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+           "\n 	//Transmit Data : Normal Start"
+           "\n 	Con_"+signalName+"	:= UDINT_TO_DWORD("+this->dutHeader+"."+signalName+".x );"
+           "\n 	 //Transmit Data : Normal End"
+           "\n ELSE"
+           "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+           "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+           "\n 	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
+           "\n 	Con_<VAR_NAME>:= 16#FF00000000000001;"
+           "\n 	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
+           "\n 	Con_<VAR_NAME>:= 16#FE00000000000001;"
+           "\n 	ELSE"
+           "\n 	Con_<VAR_NAME>:= 16#FE00000000000001;"
+           "\n 	END_IF;"
+           "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+           "\n 	ELSE"
+           "\n 	//Transmit Data : Data not valid  Start"
+           "\n 		Con_"+signalName+":= UDINT_TO_DWORD("+this->dutHeader+"."+signalName+".Param_Def );"
+           "\n 	//Transmit Data : Data not valid  End"
+           "\n 	END_IF;"
+           "\n END_IF;");
 
         }
         else if ((converType == "toREAL")|| (converType == "xtoREAL")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= UDINT_TO_DWORD(REAL_TO_UDINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= UDINT_TO_DWORD(REAL_TO_UDINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
-            "	Con_<VAR_NAME>:= 16#FF00000000000001;"
-            "	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
-            "	Con_<VAR_NAME>:= 16#FE00000000000001;"
-            "	ELSE"
-            "	Con_<VAR_NAME>:= 16#FE00000000000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= UDINT_TO_DWORD(REAL_TO_UDINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= UDINT_TO_DWORD(REAL_TO_UDINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= UDINT_TO_DWORD(REAL_TO_UDINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
+            "\n 	Con_<VAR_NAME>:= 16#FF00000000000001;"
+            "\n 	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
+            "\n 	Con_<VAR_NAME>:= 16#FE00000000000001;"
+            "\n 	ELSE"
+            "\n 	Con_<VAR_NAME>:= 16#FE00000000000001;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= UDINT_TO_DWORD(REAL_TO_UDINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
         }
     }else if((length<65)){
         if((converType == "toLWORD")|| (converType == "xtoLWORD")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= FrcVal_"+signalName+";"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
-            "	Con_<VAR_NAME>:= 16#FF000000000000000000000000000001;"
-            "	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
-            "	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
-            "	ELSE"
-            "	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= FrcVal_"+signalName+";"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= "+this->dutHeader+"."+signalName+".x ;"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
+            "\n 	Con_<VAR_NAME>:= 16#FF000000000000000000000000000001;"
+            "\n 	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
+            "\n 	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
+            "\n 	ELSE"
+            "\n 	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= "+this->dutHeader+"."+signalName+".Param_Def ;"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
         }
         else if ((converType == "toULINT")|| (converType == "xtoULINT")){
             ST.append("<"+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= ULINT_TO_LWORD(FrcVal_"+signalName+");"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= ULINT_TO_LWORD("+this->dutHeader+"."+signalName+".x );"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
-            "	Con_<VAR_NAME>:= 16#FF000000000000000000000000000001;"
-            "	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
-            "	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
-            "	ELSE"
-            "	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= ULINT_TO_LWORD("+this->dutHeader+"."+signalName+".Param_Def );"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= ULINT_TO_LWORD(FrcVal_"+signalName+");"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= ULINT_TO_LWORD("+this->dutHeader+"."+signalName+".x );"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
+            "\n 	Con_<VAR_NAME>:= 16#FF000000000000000000000000000001;"
+            "\n 	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
+            "\n 	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
+            "\n 	ELSE"
+            "\n 	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= ULINT_TO_LWORD("+this->dutHeader+"."+signalName+".Param_Def );"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
         }
         else if ((converType == "toLREAL")|| (converType == "xtoLREAL")){
             ST.append(""+this->dutHeader+"."+signalName+".RangeExcd :=  "+this->dutHeader+"."+signalName+".Param_Max < "+this->dutHeader+"."+signalName+".x OR "+this->dutHeader+"."+signalName+".Param_Min > "+this->dutHeader+"."+signalName+".x;"
-            "//Transmit Data : Range Control End"
-            "IF FrcEn_"+signalName+" THEN"
-            "	//Transmit Data : Force variable Start"
-            "	Con_"+signalName+"	:= ULINT_TO_LWORD(LREAL_TO_ULINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Force variable Start"
-            "ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
-            "	//Transmit Data : Normal Start"
-            "	Con_"+signalName+"	:= ULINT_TO_LWORD(LREAL_TO_ULINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
-            "	 //Transmit Data : Normal End"
-            "ELSE"
-            "	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
-            "	//Transmit Data : Data not valid J1939 error transmission Start"
-            "	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
-            "	Con_<VAR_NAME>:= 16#FF000000000000000000000000000001;"
-            "	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
-            "	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
-            "	ELSE"
-            "	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
-            "	END_IF;"
-            "	//Transmit Data : Data not valid J1939 error transmission End"
-            "	ELSE"
-            "	//Transmit Data : Data not valid  Start"
-            "		Con_"+signalName+":= ULINT_TO_LWORD(LREAL_TO_ULINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
-            "	//Transmit Data : Data not valid  End"
-            "	END_IF;"
-            "END_IF;");
+            "\n //Transmit Data : Range Control End"
+            "\n IF FrcEn_"+signalName+" THEN"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n 	Con_"+signalName+"	:= ULINT_TO_LWORD(LREAL_TO_ULINT(( FrcVal_"+signalName+" + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Force variable Start"
+            "\n ELSIF ("+this->dutHeader+"."+signalName+".v AND NOT "+this->dutHeader+"."+signalName+".RangeExcd) THEN"
+            "\n 	//Transmit Data : Normal Start"
+            "\n 	Con_"+signalName+"	:= ULINT_TO_LWORD(LREAL_TO_ULINT(("+this->dutHeader+"."+signalName+".x + "+this->dutHeader+"."+signalName+".Param_Off) / "+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	 //Transmit Data : Normal End"
+            "\n ELSE"
+            "\n 	IF "+this->dutHeader+"."+signalName+".J1939 THEN"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission Start"
+            "\n 	IF <IODUT_NAME>.<VAR_NAME>.na THEN	"
+            "\n 	Con_<VAR_NAME>:= 16#FF000000000000000000000000000001;"
+            "\n 	ELSIF <IODUT_NAME>.<VAR_NAME>.e THEN"
+            "\n 	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
+            "\n 	ELSE"
+            "\n 	Con_<VAR_NAME>:= 16#FE000000000000000000000000000001;"
+            "\n 	END_IF;"
+            "\n 	//Transmit Data : Data not valid J1939 error transmission End"
+            "\n 	ELSE"
+            "\n 	//Transmit Data : Data not valid  Start"
+            "\n 		Con_"+signalName+":= ULINT_TO_LWORD(LREAL_TO_ULINT(("+this->dutHeader+"."+signalName+".Param_Def + "+this->dutHeader+"."+signalName+".Param_Off) /"+this->dutHeader+"."+signalName+".Param_Res));"
+            "\n 	//Transmit Data : Data not valid  End"
+            "\n 	END_IF;"
+            "\n END_IF;");
         }
     }
 
 
     if(converType=="BOOL:BOOL"){
-        ST.append("S_IO_Bit_"+QString::number(startbit)+"               :=	("+this->dutHeader+"."+signalName+".x OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+" AND "+this->dutHeader+"."+signalName+".v >;");
+        ST.append("\nS_IO_Bit_"+QString::number(startbit)+"               :=	("+this->dutHeader+"."+signalName+".x OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+" AND "+this->dutHeader+"."+signalName+".v >;");
     }else if(converType=="2BOOL:BOOL"){
-        ST.append("S_IO_Bit_"+QString::number(startbit)+"               :=	("+this->dutHeader+"."+signalName+".x OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+";"
-                  "S_IO_Bit_"+QString::number(startbit+1)+"             :=	(NOT "+this->dutHeader+"."+signalName+".v ) AND NOT (FrcHi_"+signalName+" OR FrcLo_"+signalName+"); ");
+        ST.append("\nS_IO_Bit_"+QString::number(startbit)+"               :=	("+this->dutHeader+"."+signalName+".x OR FrcHi_"+signalName+") AND NOT FrcLo_"+signalName+";"
+                  "\nS_IO_Bit_"+QString::number(startbit+1)+"             :=	(NOT "+this->dutHeader+"."+signalName+".v ) AND NOT (FrcHi_"+signalName+" OR FrcLo_"+signalName+"); ");
     }else if((converType=="xtoBYTE")||(converType=="xtoUSINT")||((converType=="xtoREAL") && (length==8))){
-        ST.append("X_IO_BYTE_"+QString::number(startbit/8)+"            :=Cont_"+signalName+";");
+        ST.append("\nX_IO_BYTE_"+QString::number(startbit/8)+"            :=Cont_"+signalName+";");
     }else if((converType=="xtoWORD")||(converType=="xtoUINT")||((converType=="xtoREAL") && (length==16))){
-        ST.append("_FB_UNPACK_WORD_TO_BYTE(X_WORD_0:= Cont_"+signalName+", X_BYTE_0=> X_IO_BYTE_"+QString::number(startbit/8)+", X_BYTE_1=> X_IO_BYTE_"+QString::number((startbit/8)+1)+");");
+        ST.append("\n_FB_UNPACK_WORD_TO_BYTE_"+QString::number(counterfbWORDTOBYTE)+"(X_WORD_0:= Cont_"+signalName+", X_BYTE_0=> X_IO_BYTE_"+QString::number(startbit/8)+", X_BYTE_1=> X_IO_BYTE_"+QString::number((startbit/8)+1)+");");
+        counterfbWORDTOBYTE++;
     }else if((converType=="xtoDWORD")||(converType=="xtoUDINT")||((converType=="xtoREAL") && (length==32))){
-        ST.append("_FB_UNPACK_DWORD_TO_BYTE(X_DWORD_0:= Cont_"+signalName+", X_BYTE_0=> X_IO_BYTE_"+QString::number(startbit/8)+", X_BYTE_1=> X_IO_BYTE_"+QString::number((startbit/8)+1)+", X_BYTE_2=>"+QString::number((startbit/8)+2)+", X_BYTE_3=>"+QString::number((startbit/8)+3)+");");
+        ST.append("\n_FB_UNPACK_DWORD_TO_BYTE_"+QString::number(counterfbDWORDTOBYTE)+"(X_DWORD_0:= Cont_"+signalName+", X_BYTE_0=> X_IO_BYTE_"+QString::number(startbit/8)+", X_BYTE_1=> X_IO_BYTE_"+QString::number((startbit/8)+1)+", X_BYTE_2=>"+QString::number((startbit/8)+2)+", X_BYTE_3=>"+QString::number((startbit/8)+3)+");");
+        counterfbDWORDTOBYTE++;
     }else if((converType=="xtoLWORD")||(converType=="xtoULINT")||(converType=="xtoLREAL") ){
-        ST.append("_FB_UNPACK_LWORD_TO_BYTE(X_LWORD_0:= Cont_"+signalName+", X_BYTE_0=> X_IO_BYTE_"+QString::number(startbit/8)+", X_BYTE_1=> X_IO_BYTE_"+QString::number((startbit/8)+1)+", X_BYTE_2=> X_IO_BYTE_"+QString::number((startbit/8)+2)+", X_BYTE_3=> X_IO_BYTE_"+QString::number((startbit/8)+3)+", X_BYTE_4=> X_IO_BYTE_"+QString::number((startbit/8)+4)+", X_BYTE_5=> X_IO_BYTE_"+QString::number((startbit/8)+5)+", X_BYTE_6=> X_IO_BYTE_"+QString::number((startbit/8)+6)+", X_BYTE_7=> X_IO_BYTE_"+QString::number((startbit/8)+7)+");");
+        ST.append("\n_FB_UNPACK_LWORD_TO_BYTE_"+QString::number(counterfbDWORDTOBYTE)+"(X_LWORD_0:= Cont_"+signalName+", X_BYTE_0=> X_IO_BYTE_"+QString::number(startbit/8)+", X_BYTE_1=> X_IO_BYTE_"+QString::number((startbit/8)+1)+", X_BYTE_2=> X_IO_BYTE_"+QString::number((startbit/8)+2)+", X_BYTE_3=> X_IO_BYTE_"+QString::number((startbit/8)+3)+", X_BYTE_4=> X_IO_BYTE_"+QString::number((startbit/8)+4)+", X_BYTE_5=> X_IO_BYTE_"+QString::number((startbit/8)+5)+", X_BYTE_6=> X_IO_BYTE_"+QString::number((startbit/8)+6)+", X_BYTE_7=> X_IO_BYTE_"+QString::number((startbit/8)+7)+");");
+        counterfbDWORDTOBYTE++;
     }else{
         bool flagPack = false;
         if((length>8)){
             if(length<17){
-
+            ST.append("\n_FB_UNPACK_WORD_TO_BYTE_"+QString::number(counterfbWORDTOBYTE)+"(X_WORD_0:=Con_"+signalName+");");
+            counterfbWORDTOBYTE++;
             }else if(length <33){
-
+             ST.append("_FB_UNPACK_DWORD_TO_BYTE_"+QString::number(counterfbDWORDTOBYTE)+"(X_DWORD_0:=Con_"+signalName+");");
+             counterfbDWORDTOBYTE++;
             }else {
+              ST.append("\n_FB_UNPACK_LWORD_TO_BYTE_"+QString::number(counterfbLWORDTOBYTE)+"(X_LWORD_0:=Con_"+signalName+");");
+              counterfbLWORDTOBYTE++;
            }
         }
         unsigned packID=0;
@@ -2499,37 +2584,31 @@ QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short startbi
         unsigned counterBYTEDWORD=0;
         for(unsigned i =0; i<length;i++){
 
-            if((i%32 == 0) && (i>0) && length>16){
-                packID++;
-                packByteID=0;
-            }
-            if((i%16 == 0) && (i>0) && length<=16){
-                packID++;
-                packByteID=0;
-            }
-
             if(((i%8 == 0) && ((i/8)<8) )&& (!flagPack)){
-                ST.append("\n_FB_PACK_8BIT_TO_BYTE_"+QString::number(counterfb8BITTOBYTE+qFloor(i/8.0))+"(");
+                ST.append("\n_FB_UNPACK_BYTE_TO_8BITS_"+QString::number(counterfbBYTETO8BIT+qFloor(i/8.0))+"(");
                 counterBITBYTE++;
                 flagPack=true;
             }
             if(flagPack){
-                    ST.append("S_BIT_"+QString::number(i%8)+":= S_II_BIT_"+QString::number(startbit+i)+"");
+                    ST.append("S_BIT_"+QString::number(i%8)+"=> S_II_BIT_"+QString::number(startbit+i)+"");
                     if(((i%8 != 7) &&(i%(length-1) != 0)) || (i==0)) {
                         ST.append(",");
                     }
             }
             if(flagPack){
                 if(((i%8 == 7)||(i%(length-1) == 0) )&& (i>0)){
-                    ST.append(" ,X_BYTE_0=>");
+                    ST.append(" ,X_BYTE_0:=");
                     if(length<9){
                     ST.append("Raw_"+signalName);
                     ST.append(");");
                     }else if (length <17){
-                    ST.append("_FB_PACK_BYTE_TO_WORD_"+QString::number(counterfbBYTETOWORD+packID));
+                    ST.append("_FB_UNPACK_WORD_TO_BYTE_"+QString::number(counterfbWORDTOBYTE-1));
+                    ST.append(".X_BYTE_"+QString::number(packByteID)+");");
+                    }else if (length <33){
+                    ST.append("_FB_UNPACK_DWORD_TO_BYTE_"+QString::number(counterfbDWORDTOBYTE-1)+"");
                     ST.append(".X_BYTE_"+QString::number(packByteID)+");");
                     }else{
-                    ST.append("_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD+packID)+"");
+                    ST.append("_FB_UNPACK_LWORD_TO_BYTE_"+QString::number(counterfbLWORDTOBYTE-1)+"");
                     ST.append(".X_BYTE_"+QString::number(packByteID)+");");
                     }
 
@@ -2540,21 +2619,8 @@ QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short startbi
 
         }
 
-        if((length>8)){
-            if(length<17){
-                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_WORD_"+QString::number(counterfbBYTETOWORD)+".X_WORD_0;");
-                counterfbBYTETOWORD++;
-            }else if(length <33){
-                ST.append("\nRaw_"+signalName+"            :=_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+".X_DWORD_0;");
-                counterfbBYTETODWORD++;
-            }else {
-                ST.append("\n_FB_PACK_DWORD_TO_LWORD_"+QString::number(counterfbDWORDTOLWORD)+"(X_DWORD_0:=_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD)+".X_DWORD_0,X_DWORD_1:=_FB_PACK_BYTE_TO_DWORD_"+QString::number(counterfbBYTETODWORD+1)+".X_DWORD_0,X_LWORD_0=> Raw_"+signalName+");");
-            counterfbDWORDTOLWORD++;
-            counterfbBYTETODWORD++;
-            counterfbBYTETODWORD++;
-            }
-        }
-        counterfb8BITTOBYTE = counterfb8BITTOBYTE+ counterBITBYTE;
+
+        counterfbBYTETO8BIT = counterfbBYTETO8BIT+ counterBITBYTE;
     }
 
     ST.append("\n\n\n(*Conversion ends : "+signalName+"*)\n\n\n");
@@ -2562,7 +2628,324 @@ QString DBCHandler::convTypeApptoCom (QString signalName, unsigned short startbi
 
 }
 
+void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
+{
+    QDomAttr attr;
+    QDomText text;
 
+    unsigned long counterJ1939=0;
+    foreach (dataContainer * curMessage , comInterface){
+        for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+            if(curSignal->isJ1939){
+                counterJ1939++;
+            }
+        }
+    }
+    if(counterJ1939>1){
+
+        /*ERROR HANDLER*/
+        {
+            QDomElement pou = doc.createElement("pou");
+            /*set pou name*/
+            attr=doc.createAttribute("name");
+            attr.setValue("_FB_"+this->dutHeader+"_ERR_Handler");
+            pou.setAttributeNode(attr);
+            /*set pouType*/
+            attr=doc.createAttribute("pouType");
+            attr.setValue("functionBlock");
+            pou.setAttributeNode(attr);
+
+            QDomElement interface = doc.createElement("interface");
+            /*Input Variables*/
+            QDomElement inputVars = doc.createElement("inputVars");
+
+            foreach (dataContainer * curMessage , comInterface){
+                for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+                    if(curSignal->isJ1939){
+
+                        QDomElement variable = doc.createElement("variable");
+                        attr=doc.createAttribute("name");
+                        attr.setValue("ERR_"+curSignal->name);
+                        variable.setAttributeNode(attr);
+                        QDomElement type = doc.createElement("type");
+                        QDomElement BOOL = doc.createElement("BOOL");
+                        type.appendChild(BOOL);
+                        variable.appendChild(type);
+                        inputVars.appendChild(variable);
+
+                    }
+                }
+            }
+            interface.appendChild(inputVars);
+
+            /*Generate Output Input Variables - inoutVars*/
+            QDomElement inoutVars = doc.createElement("inOutVars");
+            {
+                QDomElement variable = doc.createElement("variable");
+                attr=doc.createAttribute("name");
+                attr.setValue(dutHeader);
+                variable.setAttributeNode(attr);
+                QDomElement type = doc.createElement("type");
+                QDomElement dataVarType = doc.createElement("derived");
+                attr=doc.createAttribute("name");
+                attr.setValue(dutName);
+                dataVarType.setAttributeNode(attr);
+                type.appendChild(dataVarType);
+                variable.appendChild(type);
+                inoutVars.appendChild(variable);
+            };
+            interface.appendChild(inoutVars);
+
+            pou.appendChild(interface);
+
+            QDomElement body = doc.createElement("body");
+            QDomElement ST = doc.createElement("ST");
+            QDomElement xhtml = doc.createElement("xhtml");
+            attr=doc.createAttribute("xmlns");
+            attr.setValue("http://www.w3.org/1999/xhtml");
+            xhtml.setAttributeNode(attr);
+            QString handlerText="";
+            /*ST text of Error Handler*/
+            foreach (dataContainer * curMessage , comInterface){
+                for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+                    if(curSignal->isJ1939){
+                        handlerText.append("\n"+this->dutHeader+ "."+curSignal->name+ ".e 					:=	ERR_"+curSignal->name+ ";");
+                    }
+                }
+            }
+            /*ST text of Error Handler*/
+            text=doc.createTextNode(handlerText);
+            ST.appendChild(xhtml);
+            body.appendChild(ST);
+            pou.appendChild(body);
+
+            /*Create addData*/
+            QDomElement addData = doc.createElement("addData");
+            QDomElement data = doc.createElement("data");
+            attr=doc.createAttribute("name");
+            attr.setValue("http://www.3s-software.com/plcopenxml/objectid");
+            data.setAttributeNode(attr);
+            attr=doc.createAttribute("handleUnknown");
+            attr.setValue("discard");
+            data.setAttributeNode(attr);
+            QDomElement ObjectId = doc.createElement("ObjectId");
+
+            for(QList<QString> curVal : this->fbNameandObjId){
+                if(curVal.at(0)== ("_FB_"+this->dutHeader+"_ERR_Handler")){
+                    text=doc.createTextNode(curVal.at(1));
+                }
+            }
+
+            ObjectId.appendChild(text);
+            data.appendChild(ObjectId);
+            addData.appendChild(data);
+            pou.appendChild(addData);
+            pous->appendChild(pou);
+
+        }
+
+        /*NA HANDLER*/
+        {
+            QDomElement pou = doc.createElement("pou");
+            /*set pou name*/
+            attr=doc.createAttribute("name");
+            attr.setValue("_FB_"+this->dutHeader+"_NA_Handler");
+            pou.setAttributeNode(attr);
+            /*set pouType*/
+            attr=doc.createAttribute("pouType");
+            attr.setValue("functionBlock");
+            pou.setAttributeNode(attr);
+
+            QDomElement interface = doc.createElement("interface");
+            /*Input Variables*/
+            QDomElement inputVars = doc.createElement("inputVars");
+
+            foreach (dataContainer * curMessage , comInterface){
+                for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+                    if(curSignal->isJ1939){
+
+                        QDomElement variable = doc.createElement("variable");
+                        attr=doc.createAttribute("name");
+                        attr.setValue("NA_"+curSignal->name);
+                        variable.setAttributeNode(attr);
+                        QDomElement type = doc.createElement("type");
+                        QDomElement BOOL = doc.createElement("BOOL");
+                        type.appendChild(BOOL);
+                        variable.appendChild(type);
+                        inputVars.appendChild(variable);
+
+                    }
+                }
+            }
+            interface.appendChild(inputVars);
+
+            /*Generate Output Input Variables - inoutVars*/
+            QDomElement inoutVars = doc.createElement("inOutVars");
+            {
+                QDomElement variable = doc.createElement("variable");
+                attr=doc.createAttribute("name");
+                attr.setValue(dutHeader);
+                variable.setAttributeNode(attr);
+                QDomElement type = doc.createElement("type");
+                QDomElement dataVarType = doc.createElement("derived");
+                attr=doc.createAttribute("name");
+                attr.setValue(dutName);
+                dataVarType.setAttributeNode(attr);
+                type.appendChild(dataVarType);
+                variable.appendChild(type);
+                inoutVars.appendChild(variable);
+            };
+            interface.appendChild(inoutVars);
+
+            pou.appendChild(interface);
+
+            QDomElement body = doc.createElement("body");
+            QDomElement ST = doc.createElement("ST");
+            QDomElement xhtml = doc.createElement("xhtml");
+            attr=doc.createAttribute("xmlns");
+            attr.setValue("http://www.w3.org/1999/xhtml");
+            xhtml.setAttributeNode(attr);
+            QString handlerText="";
+            /*ST text of NA Handler*/
+            foreach (dataContainer * curMessage , comInterface){
+                for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+                    if(curSignal->isJ1939){
+                        handlerText.append("\n"+this->dutHeader+ "."+curSignal->name+ ".na 					:=	NA_"+curSignal->name+ ";");
+                    }
+                }
+            }
+            /*ST text of Error Handler*/
+            text=doc.createTextNode(handlerText);
+            ST.appendChild(xhtml);
+            body.appendChild(ST);
+            pou.appendChild(body);
+
+            /*Create addData*/
+            QDomElement addData = doc.createElement("addData");
+            QDomElement data = doc.createElement("data");
+            attr=doc.createAttribute("name");
+            attr.setValue("http://www.3s-software.com/plcopenxml/objectid");
+            data.setAttributeNode(attr);
+            attr=doc.createAttribute("handleUnknown");
+            attr.setValue("discard");
+            data.setAttributeNode(attr);
+            QDomElement ObjectId = doc.createElement("ObjectId");
+
+            for(QList<QString> curVal : this->fbNameandObjId){
+                if(curVal.at(0)== ("_FB_"+this->dutHeader+"_NA_Handler")){
+                    text=doc.createTextNode(curVal.at(1));
+                }
+            }
+
+            ObjectId.appendChild(text);
+            data.appendChild(ObjectId);
+            addData.appendChild(data);
+            pou.appendChild(addData);
+            pous->appendChild(pou);
+
+        }
+        /*VALITIY HANDLER*/
+        {
+            QDomElement pou = doc.createElement("pou");
+            /*set pou name*/
+            attr=doc.createAttribute("name");
+            attr.setValue("_FB_"+this->dutHeader+"_Validity_Handler");
+            pou.setAttributeNode(attr);
+            /*set pouType*/
+            attr=doc.createAttribute("pouType");
+            attr.setValue("functionBlock");
+            pou.setAttributeNode(attr);
+
+            QDomElement interface = doc.createElement("interface");
+            /*Input Variables*/
+            QDomElement inputVars = doc.createElement("inputVars");
+
+            foreach (dataContainer * curMessage , comInterface){
+                for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+                    if(curSignal->isJ1939){
+
+                        QDomElement variable = doc.createElement("variable");
+                        attr=doc.createAttribute("name");
+                        attr.setValue("VALID_"+curSignal->name);
+                        variable.setAttributeNode(attr);
+                        QDomElement type = doc.createElement("type");
+                        QDomElement BOOL = doc.createElement("BOOL");
+                        type.appendChild(BOOL);
+                        variable.appendChild(type);
+                        inputVars.appendChild(variable);
+
+                    }
+                }
+            }
+            interface.appendChild(inputVars);
+
+            /*Generate Output Input Variables - inoutVars*/
+            QDomElement inoutVars = doc.createElement("inOutVars");
+            {
+                QDomElement variable = doc.createElement("variable");
+                attr=doc.createAttribute("name");
+                attr.setValue(dutHeader);
+                variable.setAttributeNode(attr);
+                QDomElement type = doc.createElement("type");
+                QDomElement dataVarType = doc.createElement("derived");
+                attr=doc.createAttribute("name");
+                attr.setValue(dutName);
+                dataVarType.setAttributeNode(attr);
+                type.appendChild(dataVarType);
+                variable.appendChild(type);
+                inoutVars.appendChild(variable);
+            };
+            interface.appendChild(inoutVars);
+
+            pou.appendChild(interface);
+
+            QDomElement body = doc.createElement("body");
+            QDomElement ST = doc.createElement("ST");
+            QDomElement xhtml = doc.createElement("xhtml");
+            attr=doc.createAttribute("xmlns");
+            attr.setValue("http://www.w3.org/1999/xhtml");
+            xhtml.setAttributeNode(attr);
+            QString handlerText="";
+            /*ST text of NA Handler*/
+            foreach (dataContainer * curMessage , comInterface){
+                for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
+                    if(curSignal->isJ1939){
+                        handlerText.append("\n"+this->dutHeader+ "."+curSignal->name+ ".v					:=	VALID_"+curSignal->name+ ";");
+                    }
+                }
+            }
+            /*ST text of Error Handler*/
+            text=doc.createTextNode(handlerText);
+            ST.appendChild(xhtml);
+            body.appendChild(ST);
+            pou.appendChild(body);
+
+            /*Create addData*/
+            QDomElement addData = doc.createElement("addData");
+            QDomElement data = doc.createElement("data");
+            attr=doc.createAttribute("name");
+            attr.setValue("http://www.3s-software.com/plcopenxml/objectid");
+            data.setAttributeNode(attr);
+            attr=doc.createAttribute("handleUnknown");
+            attr.setValue("discard");
+            data.setAttributeNode(attr);
+            QDomElement ObjectId = doc.createElement("ObjectId");
+
+            for(QList<QString> curVal : this->fbNameandObjId){
+                if(curVal.at(0)== ("_FB_"+this->dutHeader+"_Validty_Handler")){
+                    text=doc.createTextNode(curVal.at(1));
+                }
+            }
+
+            ObjectId.appendChild(text);
+            data.appendChild(ObjectId);
+            addData.appendChild(data);
+            pou.appendChild(addData);
+            pous->appendChild(pou);
+
+        }
+    }
+}
 
 
 

@@ -29,7 +29,10 @@ public:
     static unsigned counterfbBYTETOLWORD;
     static unsigned counterfb8BITTOBYTE;
     static unsigned counterfbDWORDTOLWORD;
-
+    static unsigned counterfbLWORDTOBYTE;
+    static unsigned counterfbDWORDTOBYTE;
+    static unsigned counterfbWORDTOBYTE;
+    static unsigned counterfbBYTETO8BIT;
     explicit DBCHandler(QObject *parent = nullptr);
 /*PROPERTIES STARTS*/
     Q_PROPERTY(QString errCode READ errCode WRITE setErrCode NOTIFY errCodeChanged)
@@ -116,6 +119,7 @@ private:
     void extracted(QDomDocument &doc, QDomText &text,
                    dataContainer *&curMessage);
     void generateIOPous(QDomElement *pous, QDomDocument &doc);
+    void generateHandlers(QDomElement *pous, QDomDocument &doc);
     //***********************************
     //Generate XML file end
     //***********************************
