@@ -2871,7 +2871,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
             foreach (dataContainer * curMessage , comInterface){
                 if(curMessage->getIfSelected())
                 for(const dataContainer::signal * curSignal : *curMessage->getSignalList()){
-                    if(curSignal->isJ1939){
+
 
                         QDomElement variable = doc.createElement("variable");
                         attr=doc.createAttribute("name");
@@ -2883,7 +2883,7 @@ void DBCHandler::generateHandlers(QDomElement *pous, QDomDocument &doc)
                         variable.appendChild(type);
                         inputVars.appendChild(variable);
 
-                    }
+
                 }
             }
             interface.appendChild(inputVars);
